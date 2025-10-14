@@ -32,7 +32,7 @@ class InvalidSchemaException extends SchemaSettingException
      */
     public function __construct(
         string $message,
-        public readonly ?string $key = null,
+        public ?string $key = null,
         int $code = 0,
         ?\Throwable $previous = null
     ) {

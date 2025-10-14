@@ -31,8 +31,8 @@ class ReadonlySettingException extends SchemaSettingException
      * @param \Throwable|null $previous Previous exception for chaining
      */
     public function __construct(
-        public readonly string $key,
-        public readonly string $operation = 'modified',
+        public string $key,
+        public string $operation = 'modified',
         int $code = 0,
         ?\Throwable $previous = null
     ) {

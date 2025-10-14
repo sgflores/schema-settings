@@ -30,8 +30,8 @@ class SettingNotFoundException extends SchemaSettingException
      * @param \Throwable|null $previous Previous exception for chaining
      */
     public function __construct(
-        public readonly string $key,
-        public readonly string $scope,
+        public string $key,
+        public string $scope,
         int $code = 0,
         ?\Throwable $previous = null
     ) {
