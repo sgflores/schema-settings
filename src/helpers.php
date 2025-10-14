@@ -1,0 +1,113 @@
+<?php
+
+use SgFlores\SchemaSetting\Facades\Settings;
+
+if (!function_exists('setting')) {
+    /**
+     * Get a setting value.
+     *
+     * @param string $key
+     * @param mixed $default
+     * @param object|null $model
+     * @return mixed
+     */
+    function setting(string $key, mixed $default = null, ?object $model = null): mixed
+    {
+        try {
+            return Settings::get($key, $model);
+        } catch (\Exception $e) {
+            return $default;
+        }
+    }
+}
+
+if (!function_exists('set_setting')) {
+    /**
+     * Set a setting value.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param object|null $model
+     * @return bool
+     */
+    function set_setting(string $key, mixed $value, ?object $model = null): bool
+    {
+        try {
+            return Settings::set($key, $value, $model);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+
+if (!function_exists('has_setting')) {
+    /**
+     * Check if a setting exists in the schema.
+     *
+     * @param string $key
+     * @param object|null $model
+     * @return bool
+     */
+    function has_setting(string $key, ?object $model = null): bool
+    {
+        try {
+            return Settings::has($key, $model);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+
+if (!function_exists('delete_setting')) {
+    /**
+     * Delete a setting.
+     *
+     * @param string $key
+     * @param object|null $model
+     * @return bool
+     */
+    function delete_setting(string $key, ?object $model = null): bool
+    {
+        try {
+            return Settings::delete($key, $model);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+
+if (!function_exists('settings')) {
+    /**
+     * Get multiple settings at once.
+     *
+     * @param array $keys
+     * @param object|null $model
+     * @return array
+     */
+    function settings(array $keys, ?object $model = null): array
+    {
+        try {
+            return Settings::getMultiple($keys, $model);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('all_settings')) {
+    /**
+     * Get all settings for a scope.
+     *
+     * @param object|null $model
+     * @return array
+     */
+    function all_settings(?object $model = null): array
+    {
+        try {
+            return Settings::all($model);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+}
+
