@@ -30,7 +30,7 @@ class InvalidConfigurableException extends SchemaSettingException
      * @param \Throwable|null $previous Previous exception for chaining
      */
     public function __construct(
-        public readonly string $class,
+        public string $class,
         int $code = 0,
         ?\Throwable $previous = null
     ) {
