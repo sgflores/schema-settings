@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
 use SgFlores\SchemaSetting\Facades\Settings;
 
 if (!function_exists('setting')) {
@@ -8,10 +9,10 @@ if (!function_exists('setting')) {
      *
      * @param string $key
      * @param mixed $default
-     * @param object|null $model
+     * @param Model|null $model
      * @return mixed
      */
-    function setting(string $key, mixed $default = null, ?object $model = null): mixed
+    function setting(string $key, mixed $default = null, ?Model $model = null): mixed
     {
         try {
             return Settings::get($key, $model);
@@ -27,10 +28,10 @@ if (!function_exists('set_setting')) {
      *
      * @param string $key
      * @param mixed $value
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      */
-    function set_setting(string $key, mixed $value, ?object $model = null): bool
+    function set_setting(string $key, mixed $value, ?Model $model = null): bool
     {
         try {
             return Settings::set($key, $value, $model);
@@ -45,10 +46,10 @@ if (!function_exists('has_setting')) {
      * Check if a setting exists in the schema.
      *
      * @param string $key
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      */
-    function has_setting(string $key, ?object $model = null): bool
+    function has_setting(string $key, ?Model $model = null): bool
     {
         try {
             return Settings::has($key, $model);
@@ -63,10 +64,10 @@ if (!function_exists('delete_setting')) {
      * Delete a setting.
      *
      * @param string $key
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      */
-    function delete_setting(string $key, ?object $model = null): bool
+    function delete_setting(string $key, ?Model $model = null): bool
     {
         try {
             return Settings::delete($key, $model);
@@ -81,10 +82,10 @@ if (!function_exists('settings')) {
      * Get multiple settings at once.
      *
      * @param array $keys
-     * @param object|null $model
+     * @param Model|null $model
      * @return array
      */
-    function settings(array $keys, ?object $model = null): array
+    function settings(array $keys, ?Model $model = null): array
     {
         try {
             return Settings::getMultiple($keys, $model);
@@ -98,10 +99,10 @@ if (!function_exists('all_settings')) {
     /**
      * Get all settings for a scope.
      *
-     * @param object|null $model
+     * @param Model|null $model
      * @return array
      */
-    function all_settings(?object $model = null): array
+    function all_settings(?Model $model = null): array
     {
         try {
             return Settings::all($model);

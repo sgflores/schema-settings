@@ -344,7 +344,9 @@ protected function castValue(mixed $value, array $config): mixed
 
 #### Batch Optimization
 ```php
-public function getMultiple(array $keys, ?object $model = null): array
+use Illuminate\Database\Eloquent\Model;
+
+public function getMultiple(array $keys, ?Model $model = null): array
 {
     // Check cache first for each key
     $cached = [];
@@ -456,27 +458,39 @@ Setting::forModel($user)->key('theme')->first();
 
 ```
 tests/
-├── Feature/                       # Integration tests
-│   ├── SettingsManagerTest.php   # Core functionality
-│   ├── ModelScopedSettingsTest.php
-│   ├── CachingTest.php
-│   ├── ValidationTest.php
-│   ├── EncryptionTest.php
-│   ├── AuditTrailTest.php
-│   ├── RegistrationTest.php
-│   ├── ConsoleCommandsTest.php
-│   ├── HelperFunctionsTest.php
-│   └── InterfaceBindingTest.php
-├── Unit/                          # Unit tests
-│   ├── ConfigurableItemTest.php
-│   ├── ExceptionsTest.php
-│   └── TypeCastingTest.php
-├── Fixtures/                      # Test helpers
-│   ├── TestUser.php
-│   ├── TestTeam.php
-│   ├── TestGlobalSettings.php
-│   └── TestUserSettings.php
-└── TestCase.php                   # Base test class
+├── Feature/                         # Integration tests
+│   ├── SettingsManagerTest.php     # Core functionality
+│   ├── ModelScopedSettingsTest.php # Model-scoped settings
+│   ├── CachingTest.php             # Cache behavior
+│   ├── ValidationTest.php          # Validation rules
+│   ├── EncryptionTest.php          # Encryption features
+│   ├── AuditTrailTest.php          # Audit trail
+│   ├── RegistrationTest.php        # Schema registration
+│   ├── ConsoleCommandsTest.php     # CLI commands
+│   ├── HelperFunctionsTest.php     # Global helpers
+│   ├── InterfaceBindingTest.php    # DI bindings
+│   ├── EnumHandlingTest.php        # PHP 8.1+ enums
+│   ├── DateTimeHandlingTest.php    # DateTime types
+│   ├── BatchOperationsTest.php     # Batch operations
+│   └── ErrorRecoveryTest.php       # Error handling
+├── Unit/                            # Unit tests
+│   ├── ConfigurableItemTest.php    # Schema builder
+│   ├── ConfigurableTraitTest.php   # Model trait
+│   ├── ServiceProviderTest.php     # Service provider
+│   ├── ExceptionsTest.php          # Exceptions
+│   ├── SettingModelTest.php        # Setting model
+│   ├── SettingHistoryModelTest.php # History model
+│   └── TypeCastingTest.php         # Type casting
+├── Fixtures/                        # Test helpers
+│   ├── TestUser.php                # Test user model
+│   ├── TestTeam.php                # Test team model
+│   ├── TestGlobalSettings.php      # Global schema
+│   ├── TestUserSettings.php        # User schema
+│   ├── TestEnumSettings.php        # Enum schema
+│   ├── TestDateTimeSettings.php    # DateTime schema
+│   ├── TestStatusEnum.php          # String enum
+│   └── TestPriorityEnum.php        # Integer enum
+└── TestCase.php                     # Base test class
 ```
 
 ### TestCase Setup
@@ -516,10 +530,37 @@ abstract class TestCase extends Orchestra
 
 ### Test Coverage Goals
 
-- **Feature Tests**: Test complete workflows
-- **Unit Tests**: Test individual components
-- **Edge Cases**: Test error conditions
-- **Performance**: Test batch operations
+The test suite provides comprehensive coverage across multiple dimensions:
+
+**Functional Coverage:**
+- **Feature Tests**: Complete workflows and integrations
+- **Unit Tests**: Individual component isolation
+- **Edge Cases**: Error conditions and boundary values
+- **Performance Tests**: Batch operations and query optimization
+
+**Type Coverage:**
+- **All 8 Data Types**: String, integer, boolean, float, array, json, datetime, enum
+- **PHP 8.1+ Enums**: String-backed and integer-backed enums
+- **DateTime Support**: Multiple formats, Carbon, DateTimeImmutable
+- **Type Casting**: Automatic conversion and validation
+
+**Reliability Coverage:**
+- **Error Recovery**: Graceful degradation and failure handling
+- **Data Integrity**: Transaction atomicity and rollback
+- **Cache Resilience**: Fallback to database on cache failures
+- **Security**: Encryption, validation, and readonly enforcement
+
+### Test Philosophy
+
+Our testing approach follows these principles:
+
+1. **Comprehensive**: Test happy paths, edge cases, and error scenarios
+2. **Realistic**: Tests reflect actual production usage patterns
+3. **Fast**: In-memory SQLite for rapid execution
+4. **Isolated**: Each test is completely independent
+5. **Maintainable**: Clear structure, fixtures, and naming
+6. **Thorough**: Verify database state, cache state, and return values
+7. **Type Safe**: Use proper type assertions throughout
 
 ### Running Tests
 

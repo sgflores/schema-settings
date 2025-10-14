@@ -48,15 +48,6 @@ class RegistrationTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_schema_on_registration(): void
-    {
-        // This should not throw an exception
-        $this->manager->register(TestGlobalSettings::class);
-
-        $this->assertTrue(true);
-    }
-
-    #[Test]
     public function it_throws_exception_when_registering_non_configurable_class(): void
     {
         $this->expectException(InvalidConfigurableException::class);

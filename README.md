@@ -389,12 +389,31 @@ return [
 
 ## Testing
 
-Run the test suite:
+The package includes a comprehensive, well-organized test suite:
 
 ```bash
 cd packages/sgflores/schema-settings
 composer test
 ```
+
+**Test Suite Features:**
+- ✅ Comprehensive unit and feature tests
+- ✅ All 8 data types fully tested
+- ✅ PHP 8.1+ enum support (string and integer-backed)
+- ✅ DateTime handling with multiple formats
+- ✅ Batch operations with performance verification
+- ✅ Error recovery and graceful degradation
+- ✅ All console commands tested
+- ✅ Fast execution with in-memory SQLite
+- ✅ Excellent test coverage
+
+**Test Organization:**
+- Focused test files for better clarity
+- Comprehensive edge case coverage
+- Error scenario testing
+- Performance optimization validation
+
+See `tests/README.md` for detailed test documentation.
 
 ## License
 

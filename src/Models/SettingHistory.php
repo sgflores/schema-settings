@@ -2,8 +2,10 @@
 
 namespace SgFlores\SchemaSetting\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * SettingHistory Model
@@ -34,7 +36,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string|null $user_type
  * @property int|null $user_id
  * @property string $action
- * @property \Illuminate\Support\Carbon $created_at
+ * @property Carbon $created_at
  */
 class SettingHistory extends Model
 {
@@ -96,11 +98,11 @@ class SettingHistory extends Model
      * 
      * Useful for retrieving the complete change history of a specific setting.
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $key The setting key
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
-    public function scopeKey($query, string $key)
+    public function scopeKey(Builder $query, string $key): Builder
     {
         return $query->where('key', $key);
     }
@@ -110,11 +112,11 @@ class SettingHistory extends Model
      * 
      * Actions are: 'created', 'updated', or 'deleted'
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $action The action type to filter by
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
-    public function scopeAction($query, string $action)
+    public function scopeAction(Builder $query, string $action): Builder
     {
         return $query->where('action', $action);
     }
