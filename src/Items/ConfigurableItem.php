@@ -138,7 +138,7 @@ class ConfigurableItem
      * 
      * Rules are validated when a value is set. Can be provided as array or pipe-separated string.
      * 
-     * @param array|string $rules Laravel validation rules
+     * @param array<int, string>|string $rules Laravel validation rules
      * @return static
      */
     public function rules(array|string $rules): static
@@ -253,7 +253,7 @@ class ConfigurableItem
      * Automatically generates an 'in' validation rule to restrict values.
      * All options must be scalar values (string, int, float, bool).
      * 
-     * @param array $options Array of allowed values
+     * @param array<int, scalar> $options Array of allowed values
      * @return static
      * @throws InvalidSchemaException If options array is empty or contains non-scalar values
      */
@@ -359,7 +359,7 @@ class ConfigurableItem
      * Includes all properties: key, type, default, rules, group, label, description,
      * encrypted, readonly, enumClass, and options.
      * 
-     * @return array Associative array of all properties
+     * @return array<string, mixed> Associative array of all properties
      */
     public function toArray(): array
     {

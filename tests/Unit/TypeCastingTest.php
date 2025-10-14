@@ -156,14 +156,6 @@ class TypeCastingTest extends TestCase
     }
 
     #[Test]
-    public function it_serializes_datetime_correctly(): void
-    {
-        // Skip this test as installation_date is readonly
-        // The serialization logic is tested through other means
-        $this->assertTrue(true);
-    }
-
-    #[Test]
     public function it_handles_array_vs_json_types_correctly(): void
     {
         // Array type

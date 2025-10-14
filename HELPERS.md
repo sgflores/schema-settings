@@ -15,20 +15,22 @@ All helper functions are automatically loaded and available globally in your Lar
 Get a setting value with optional default fallback.
 
 ```php
+use Illuminate\Database\Eloquent\Model;
+
 // Get global setting
 $siteName = setting('site_name');
 
 // With default value
 $theme = setting('theme', 'light');
 
-// For a specific model
+// For a specific model (must be an Eloquent Model instance)
 $userTheme = setting('theme', 'light', $user);
 ```
 
 **Parameters:**
 - `$key` (string): The setting key
 - `$default` (mixed): Default value if setting doesn't exist or error occurs
-- `$model` (object|null): Optional model for scoped settings
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
 
 **Returns:** mixed - The setting value or default
 
@@ -42,14 +44,14 @@ Set a setting value.
 // Set global setting
 set_setting('site_name', 'My Awesome Site');
 
-// Set for a specific model
+// Set for a specific model (must be an Eloquent Model instance)
 set_setting('theme', 'dark', $user);
 ```
 
 **Parameters:**
 - `$key` (string): The setting key
 - `$value` (mixed): The value to set
-- `$model` (object|null): Optional model for scoped settings
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
 
 **Returns:** bool - True on success, false on failure
 
@@ -73,7 +75,7 @@ if (has_setting('theme', $user)) {
 
 **Parameters:**
 - `$key` (string): The setting key
-- `$model` (object|null): Optional model for scoped settings
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
 
 **Returns:** bool
 
@@ -93,7 +95,7 @@ delete_setting('theme', $user);
 
 **Parameters:**
 - `$key` (string): The setting key
-- `$model` (object|null): Optional model for scoped settings
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
 
 **Returns:** bool - True on success, false on failure
 
@@ -113,7 +115,7 @@ $userPrefs = settings(['theme', 'notifications_enabled'], $user);
 
 **Parameters:**
 - `$keys` (array): Array of setting keys
-- `$model` (object|null): Optional model for scoped settings
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
 
 **Returns:** array - Associative array of key => value pairs
 
@@ -132,7 +134,7 @@ $userSettings = all_settings($user);
 ```
 
 **Parameters:**
-- `$model` (object|null): Optional model for scoped settings
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
 
 **Returns:** array - All settings for the scope
 

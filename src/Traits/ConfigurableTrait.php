@@ -2,6 +2,7 @@
 
 namespace SgFlores\SchemaSetting\Traits;
 
+use Illuminate\Validation\ValidationException;
 use SgFlores\SchemaSetting\Facades\Settings;
 
 /**
@@ -47,7 +48,7 @@ trait ConfigurableTrait
      * @return bool True on success
      * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
      * @throws \SgFlores\SchemaSetting\Exceptions\ReadonlySettingException
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function setSetting(string $key, mixed $value): bool
     {
@@ -106,7 +107,7 @@ trait ConfigurableTrait
      * @return bool True on success
      * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
      * @throws \SgFlores\SchemaSetting\Exceptions\ReadonlySettingException
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function setSettings(array $settings): bool
     {

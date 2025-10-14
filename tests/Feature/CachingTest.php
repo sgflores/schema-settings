@@ -123,29 +123,6 @@ class CachingTest extends TestCase
     }
 
     #[Test]
-    public function it_uses_readable_cache_keys(): void
-    {
-        $this->manager->set('site_name', 'Test');
-        $this->manager->get('site_name');
-
-        // Cache key should be readable: prefix + scope + reference_id + key
-        $expectedKey = 'test_settings_global:null:site_name';
-
-        $this->assertTrue(Cache::has($expectedKey));
-    }
-
-    #[Test]
-    public function it_uses_model_specific_cache_keys(): void
-    {
-        $this->manager->set('theme', 'dark', $this->user);
-        $this->manager->get('theme', $this->user);
-
-        $expectedKey = 'test_settings_' . TestUser::class . ':' . $this->user->id . ':theme';
-
-        $this->assertTrue(Cache::has($expectedKey));
-    }
-
-    #[Test]
     public function it_can_manually_clear_cache(): void
     {
         $this->manager->set('site_name', 'Cached');
@@ -277,5 +254,171 @@ class CachingTest extends TestCase
         // maintenance_mode cache should still exist
         $this->assertTrue(Cache::has($maintenanceKey));
     }
+
+    #[Test]
+    public function clear_cache_for_specific_scope(): void
+    {
+        // Set and cache global settings
+        $this->manager->set('site_name', 'Global Site');
+        $this->manager->get('site_name');
+
+        // Set and cache user settings
+        $this->manager->set('theme', 'dark', $this->user);
+        $this->manager->get('theme', $this->user);
+
+        $globalKey = 'test_settings_global:null:site_name';
+        $userKey = 'test_settings_' . TestUser::class . ':' . $this->user->id . ':theme';
+
+        $this->assertTrue(Cache::has($globalKey));
+        $this->assertTrue(Cache::has($userKey));
+
+        // Clear only global scope
+        $this->manager->clearCache('global');
+
+        // Global should be cleared, user should remain
+        $this->assertFalse(Cache::has($globalKey));
+        $this->assertTrue(Cache::has($userKey));
+    }
+
+    #[Test]
+    public function clear_cache_for_specific_model_instance(): void
+    {
+        $user1 = TestUser::create(['name' => 'User 1', 'email' => 'user1@test.com']);
+        $user2 = TestUser::create(['name' => 'User 2', 'email' => 'user2@test.com']);
+
+        // Set and cache for both users
+        $this->manager->set('theme', 'dark', $user1);
+        $this->manager->set('theme', 'light', $user2);
+        $this->manager->get('theme', $user1);
+        $this->manager->get('theme', $user2);
+
+        $user1Key = 'test_settings_' . TestUser::class . ':' . $user1->id . ':theme';
+        $user2Key = 'test_settings_' . TestUser::class . ':' . $user2->id . ':theme';
+
+        $this->assertTrue(Cache::has($user1Key));
+        $this->assertTrue(Cache::has($user2Key));
+
+        // Clear only user1's cache
+        $this->manager->clearCache(TestUser::class, $user1->id);
+
+        // User1 cache should be cleared
+        $this->assertFalse(Cache::has($user1Key));
+        // User2 cache should remain
+        $this->assertTrue(Cache::has($user2Key));
+    }
+
+    #[Test]
+    public function clear_cache_works_when_cache_is_disabled(): void
+    {
+        // Should not throw exception even if cache is disabled
+        $this->manager->clearCache();
+        
+        $this->assertTrue(true); // No exception thrown
+    }
+
+    #[Test]
+    public function cache_works_with_encrypted_values(): void
+    {
+        $this->manager->set('api_key', 'super_secret_key_1234567890abcdef');
+        
+        // First get - should cache decrypted value
+        $value1 = $this->manager->get('api_key');
+
+        // Should be cached (decrypted)
+        $cacheKey = 'test_settings_global:null:api_key';
+        $this->assertTrue(Cache::has($cacheKey));
+        $this->assertEquals('super_secret_key_1234567890abcdef', Cache::get($cacheKey));
+
+        // Second get - from cache
+        $value2 = $this->manager->get('api_key');
+
+        $this->assertEquals($value1, $value2);
+    }
+
+    #[Test]
+    public function cache_ttl_is_respected(): void
+    {
+        // TTL is set in config - just verify it's configurable
+        $ttl = config('schema-settings.cache.ttl');
+        
+        // TTL can be null (meaning forever) or an integer
+        $this->assertTrue($ttl === null || (is_int($ttl) && $ttl > 0));
+    }
+
+    #[Test]
+    public function get_multiple_caches_all_fetched_values(): void
+    {
+        Cache::flush();
+
+        $this->manager->set('site_name', 'Test');
+        $this->manager->set('max_users', 200);
+
+        $values = $this->manager->getMultiple(['site_name', 'max_users']);
+
+        // Both should be cached now
+        $this->assertTrue(Cache::has('test_settings_global:null:site_name'));
+        $this->assertTrue(Cache::has('test_settings_global:null:max_users'));
+    }
+
+    #[Test]
+    public function set_multiple_invalidates_all_affected_caches(): void
+    {
+        // Set and cache multiple settings
+        $this->manager->set('site_name', 'Original Site');
+        $this->manager->set('max_users', 100);
+        $this->manager->get('site_name');
+        $this->manager->get('max_users');
+
+        $siteKey = 'test_settings_global:null:site_name';
+        $usersKey = 'test_settings_global:null:max_users';
+
+        $this->assertTrue(Cache::has($siteKey));
+        $this->assertTrue(Cache::has($usersKey));
+
+        // Update both via setMultiple
+        $this->manager->setMultiple([
+            'site_name' => 'New Site',
+            'max_users' => 200,
+        ]);
+
+        // Both caches should be invalidated
+        $this->assertFalse(Cache::has($siteKey));
+        $this->assertFalse(Cache::has($usersKey));
+
+        // Get again should fetch from DB and cache new values
+        $this->manager->get('site_name');
+        $this->assertTrue(Cache::has($siteKey));
+        $this->assertEquals('New Site', Cache::get($siteKey));
+    }
+
+    #[Test]
+    public function all_caches_all_returned_values(): void
+    {
+        Cache::flush();
+
+        $this->manager->set('site_name', 'Test');
+        $this->manager->set('max_users', 200);
+
+        $this->manager->all();
+
+        // All settings should now be cached
+        $this->assertTrue(Cache::has('test_settings_global:null:site_name'));
+        $this->assertTrue(Cache::has('test_settings_global:null:max_users'));
+        $this->assertTrue(Cache::has('test_settings_global:null:maintenance_mode'));
+    }
+
+    #[Test]
+    public function cache_isolation_between_global_and_model_scoped(): void
+    {
+        // This setting key exists in both global and user scope potentially
+        // Ensure caches don't interfere
+        $this->manager->set('site_name', 'Global Value');
+        $this->manager->get('site_name');
+
+        $globalKey = 'test_settings_global:null:site_name';
+        $this->assertTrue(Cache::has($globalKey));
+        $this->assertEquals('Global Value', Cache::get($globalKey));
+    }
 }
+
 

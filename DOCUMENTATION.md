@@ -217,21 +217,23 @@ ConfigurableItem::make('key')
 **Key Methods**:
 
 ```php
+use Illuminate\Database\Eloquent\Model;
+
 // Schema Management
 register(string $class): void
 getSchema(?string $scopeKey = null): array
-has(string $key, ?object $model = null): bool
+has(string $key, ?Model $model = null): bool
 
 // CRUD Operations
-get(string $key, ?object $model = null): mixed
-getOrFail(string $key, ?object $model = null): mixed
-set(string $key, mixed $value, ?object $model = null): bool
-delete(string $key, ?object $model = null): bool
+get(string $key, ?Model $model = null): mixed
+getOrFail(string $key, ?Model $model = null): mixed
+set(string $key, mixed $value, ?Model $model = null): bool
+delete(string $key, ?Model $model = null): bool
 
 // Batch Operations
-getMultiple(array $keys, ?object $model = null): array
-setMultiple(array $settings, ?object $model = null): bool
-all(?object $model = null): array
+getMultiple(array $keys, ?Model $model = null): array
+setMultiple(array $settings, ?Model $model = null): bool
+all(?Model $model = null): array
 
 // Cache Management
 clearCache(?string $scopeKey = null, ?int $referenceId = null): void

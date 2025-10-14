@@ -2,8 +2,10 @@
 
 namespace SgFlores\SchemaSetting\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Setting Model
@@ -26,8 +28,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string $value
  * @property string|null $reference_type
  * @property int|null $reference_id
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class Setting extends Model
 {
@@ -71,10 +73,10 @@ class Setting extends Model
      * 
      * Global settings have null reference_type and reference_id.
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @return Builder
      */
-    public function scopeGlobal($query)
+    public function scopeGlobal(Builder $query): Builder
     {
         return $query->whereNull('reference_type')->whereNull('reference_id');
     }
@@ -84,11 +86,11 @@ class Setting extends Model
      * 
      * Finds settings scoped to a particular model (e.g., User ID 1).
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param object $model The model instance to scope by
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @param Builder $query
+     * @param Model $model The Eloquent model instance to scope by
+     * @return Builder
      */
-    public function scopeForModel($query, object $model)
+    public function scopeForModel(Builder $query, Model $model): Builder
     {
         return $query->where('reference_type', $model::class)
                      ->where('reference_id', $model->getKey());
@@ -97,11 +99,11 @@ class Setting extends Model
     /**
      * Query scope to filter by setting key.
      * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $key The setting key
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
-    public function scopeKey($query, string $key)
+    public function scopeKey(Builder $query, string $key): Builder
     {
         return $query->where('key', $key);
     }

@@ -2,11 +2,14 @@
 
 namespace SgFlores\SchemaSetting\Manager;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Contracts\SettingsManagerInterface;
@@ -132,7 +135,7 @@ class SettingsManager implements SettingsManagerInterface
      * 6. Caches the result (if enabled)
      * 
      * @param string $key The setting key to retrieve
-     * @param object|null $model Optional model instance for model-scoped settings
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
      * @return mixed The setting value, cast to the appropriate type
      * @throws SettingNotFoundException If the key doesn't exist in the schema
      * 
@@ -140,7 +143,7 @@ class SettingsManager implements SettingsManagerInterface
      * $siteName = Settings::get('site_name');
      * $userTheme = Settings::get('theme', $user);
      */
-    public function get(string $key, ?object $model = null): mixed
+    public function get(string $key, ?Model $model = null): mixed
     {
         $scopeKey = $model ? $model::class : 'global';
         $config = $this->getSchemaConfig($scopeKey, $key);
@@ -161,11 +164,11 @@ class SettingsManager implements SettingsManagerInterface
      * Useful when you want to ensure a setting must exist before proceeding.
      * 
      * @param string $key The setting key to retrieve
-     * @param object|null $model Optional model instance for model-scoped settings
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
      * @return mixed The setting value, automatically cast to its defined type
      * @throws SettingNotFoundException If the setting doesn't exist in schema or model scope
      */
-    public function getOrFail(string $key, ?object $model = null): mixed
+    public function getOrFail(string $key, ?Model $model = null): mixed
     {
         $scopeKey = $model ? $model::class : 'global';
         
@@ -184,18 +187,18 @@ class SettingsManager implements SettingsManagerInterface
      * Returns the default value from config if no database record exists.
      * 
      * @param string $key The setting key
-     * @param object|null $model Optional model for scoping
-     * @param array $config The schema configuration for this setting
+     * @param Model|null $model Optional Eloquent model for scoping
+     * @param ConfigurableItem $config The schema configuration for this setting
      * @return mixed The deserialized and cast value, or default if not found
      */
-    protected function fetchFromDatabase(string $key, ?object $model, array $config): mixed
+    protected function fetchFromDatabase(string $key, ?Model $model, ConfigurableItem $config): mixed
     {
         $setting = Setting::query()
             ->key($key)
             ->when($model, fn($q) => $q->forModel($model), fn($q) => $q->global())
             ->first();
 
-        $value = $setting ? $this->deserializeValue($setting->value, $config) : $config['default'];
+        $value = $setting ? $this->deserializeValue($setting->value, $config) : $config->default;
         
         return $this->castValue($value, $config);
     }
@@ -214,24 +217,24 @@ class SettingsManager implements SettingsManagerInterface
      * 
      * @param string $key The setting key to set
      * @param mixed $value The value to store
-     * @param object|null $model Optional model instance for model-scoped settings
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
      * @return bool True on success
      * @throws SettingNotFoundException If setting key not found in schema
      * @throws ReadonlySettingException If setting is marked as readonly
      * @throws ValidationException If value fails validation rules
      */
-    public function set(string $key, mixed $value, ?object $model = null): bool
+    public function set(string $key, mixed $value, ?Model $model = null): bool
     {
         $scopeKey = $model ? $model::class : 'global';
         $config = $this->getSchemaConfig($scopeKey, $key);
 
         // Check if readonly
-        if ($config['readonly']) {
+        if ($config->readonly) {
             throw new ReadonlySettingException($key, 'modified');
         }
 
         // Validate the value
-        $this->validateValue($key, $value, $config['rules']);
+        $this->validateValue($key, $value, $config->rules);
 
         // Get old value for audit trail
         $oldSetting = Setting::query()
@@ -280,18 +283,18 @@ class SettingsManager implements SettingsManagerInterface
      * Also invalidates cache and records audit trail entry.
      * 
      * @param string $key The setting key to delete
-     * @param object|null $model Optional model instance for model-scoped settings
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
      * @return bool True if deleted, false if setting didn't exist in database
      * @throws SettingNotFoundException If setting key not found in schema
      * @throws ReadonlySettingException If setting is marked as readonly
      */
-    public function delete(string $key, ?object $model = null): bool
+    public function delete(string $key, ?Model $model = null): bool
     {
         $scopeKey = $model ? $model::class : 'global';
         $config = $this->getSchemaConfig($scopeKey, $key);
 
         // Check if readonly
-        if ($config['readonly']) {
+        if ($config->readonly) {
             throw new ReadonlySettingException($key, 'deleted');
         }
 
@@ -326,12 +329,12 @@ class SettingsManager implements SettingsManagerInterface
      * 
      * This is 90-95% faster than calling get() in a loop for bulk retrievals.
      * 
-     * @param array $keys Array of setting keys to retrieve
-     * @param object|null $model Optional model instance for model-scoped settings
-     * @return array Associative array of key => value pairs
+     * @param array<int, string> $keys Array of setting keys to retrieve
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
+     * @return array<string, mixed> Associative array of key => value pairs
      * @throws SettingNotFoundException If any key is not found in schema
      */
-    public function getMultiple(array $keys, ?object $model = null): array
+    public function getMultiple(array $keys, ?Model $model = null): array
     {
         $scopeKey = $model ? $model::class : 'global';
         $results = [];
@@ -363,7 +366,7 @@ class SettingsManager implements SettingsManagerInterface
             
             // Get from database result or use default
             $setting = $dbSettings->get($key);
-            $value = $setting ? $this->deserializeValue($setting->value, $config) : $config['default'];
+            $value = $setting ? $this->deserializeValue($setting->value, $config) : $config->default;
             $value = $this->castValue($value, $config);
             
             // Cache the value
@@ -383,14 +386,14 @@ class SettingsManager implements SettingsManagerInterface
      * All settings are updated atomically - if any validation fails, no settings
      * are saved. This ensures data consistency for bulk updates.
      * 
-     * @param array $settings Associative array of key => value pairs to set
-     * @param object|null $model Optional model instance for model-scoped settings
+     * @param array<string, mixed> $settings Associative array of key => value pairs to set
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
      * @return bool True on success
      * @throws SettingNotFoundException If any key is not found in schema
      * @throws ReadonlySettingException If any setting is readonly
      * @throws ValidationException If any value fails validation
      */
-    public function setMultiple(array $settings, ?object $model = null): bool
+    public function setMultiple(array $settings, ?Model $model = null): bool
     {
         DB::transaction(function () use ($settings, $model) {
             foreach ($settings as $key => $value) {
@@ -407,10 +410,10 @@ class SettingsManager implements SettingsManagerInterface
      * Retrieves every setting registered in the schema for the given scope
      * (global or model-specific). Uses a single database query for efficiency.
      * 
-     * @param object|null $model Optional model instance for model-scoped settings
-     * @return array Associative array of all settings (key => value pairs)
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
+     * @return array<string, mixed> Associative array of all settings (key => value pairs)
      */
-    public function all(?object $model = null): array
+    public function all(?Model $model = null): array
     {
         $scopeKey = $model ? $model::class : 'global';
         
@@ -430,7 +433,6 @@ class SettingsManager implements SettingsManagerInterface
         
         // Process each setting in schema
         foreach ($this->schema[$scopeKey] as $key => $item) {
-            $config = $item->toArray();
             $cacheKey = $this->getCacheKey($scopeKey, $model?->getKey(), $key);
             
             // Check cache first
@@ -441,8 +443,8 @@ class SettingsManager implements SettingsManagerInterface
             
             // Get from database result or use default
             $setting = $dbSettings->get($key);
-            $value = $setting ? $this->deserializeValue($setting->value, $config) : $config['default'];
-            $value = $this->castValue($value, $config);
+            $value = $setting ? $this->deserializeValue($setting->value, $item) : $item->default;
+            $value = $this->castValue($value, $item);
             
             // Cache the value
             if ($this->cacheEnabled) {
@@ -501,9 +503,13 @@ class SettingsManager implements SettingsManagerInterface
      * Returns the compiled schema containing all ConfigurableItem definitions.
      * Useful for introspection, debugging, or building admin UIs.
      * 
+     * Note: Return type varies based on input:
+     * - If $scopeKey is null: Returns array<string, array<string, ConfigurableItem>> (all scopes)
+     * - If $scopeKey is provided: Returns array<string, ConfigurableItem> (single scope)
+     * 
      * @param string|null $scopeKey Optional scope to get schema for (e.g., 'global', User::class)
      *                              If null, returns all registered schemas
-     * @return array The schema configuration array
+     * @return array<string, array<string, ConfigurableItem>>|array<string, ConfigurableItem> The schema configuration array
      */
     public function getSchema(?string $scopeKey = null): array
     {
@@ -521,10 +527,10 @@ class SettingsManager implements SettingsManagerInterface
      * A setting can exist in schema but not yet have a database value.
      * 
      * @param string $key The setting key to check
-     * @param object|null $model Optional model instance for model-scoped settings
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
      * @return bool True if the setting is registered in the schema, false otherwise
      */
-    public function has(string $key, ?object $model = null): bool
+    public function has(string $key, ?Model $model = null): bool
     {
         $scopeKey = $model ? $model::class : 'global';
         
@@ -553,24 +559,23 @@ class SettingsManager implements SettingsManagerInterface
     }
     
     /**
-     * Helper to get a schema item configuration as an array.
+     * Helper to get a schema item configuration.
      * 
-     * Retrieves the ConfigurableItem for the given key and scope, converts it to an array.
-     * This array format is used internally for caching and processing.
+     * Retrieves the ConfigurableItem for the given key and scope.
+     * Returns the ConfigurableItem object for better type safety and IDE support.
      * 
      * @param string $scopeKey The scope (e.g., 'global', User::class)
      * @param string $key The setting key
-     * @return array The configuration array from ConfigurableItem::toArray()
+     * @return ConfigurableItem The configuration item
      * @throws SettingNotFoundException If setting not found in schema
      */
-    protected function getSchemaConfig(string $scopeKey, string $key): array
+    protected function getSchemaConfig(string $scopeKey, string $key): ConfigurableItem
     {
         if (!isset($this->schema[$scopeKey][$key])) {
             throw new SettingNotFoundException($key, $scopeKey);
         }
         
-        $item = $this->schema[$scopeKey][$key];
-        return $item instanceof ConfigurableItem ? $item->toArray() : (array) $item;
+        return $this->schema[$scopeKey][$key];
     }
     
     /**
@@ -600,7 +605,7 @@ class SettingsManager implements SettingsManagerInterface
      * 
      * @param string $key The setting key (used for validation error messages)
      * @param mixed $value The value to validate
-     * @param array $rules Array of Laravel validation rules
+     * @param array<int, string> $rules Array of Laravel validation rules
      * @return void
      * @throws ValidationException If validation fails
      */
@@ -627,16 +632,16 @@ class SettingsManager implements SettingsManagerInterface
      * - enum → Enum instance
      * 
      * @param mixed $value The raw value to cast
-     * @param array $config The schema configuration containing type information
+     * @param ConfigurableItem $config The schema configuration containing type information
      * @return mixed The type-cast value
      */
-    protected function castValue(mixed $value, array $config): mixed
+    protected function castValue(mixed $value, ConfigurableItem $config): mixed
     {
         if ($value === null) {
-            return $config['default'] ?? null;
+            return $config->default ?? null;
         }
 
-        return match ($config['type']) {
+        return match ($config->type) {
             ConfigurableItem::TYPE_BOOLEAN => (bool) $value,
             ConfigurableItem::TYPE_INTEGER => (int) $value,
             ConfigurableItem::TYPE_FLOAT => (float) $value,
@@ -654,10 +659,10 @@ class SettingsManager implements SettingsManagerInterface
      * returns the default value (or null) instead of throwing an exception.
      * 
      * @param mixed $value The value to cast to DateTime
-     * @param array $config The schema configuration
+     * @param ConfigurableItem $config The schema configuration
      * @return \DateTimeInterface|null The DateTime object, default, or null
      */
-    protected function castToDateTime(mixed $value, array $config): ?\DateTimeInterface
+    protected function castToDateTime(mixed $value, ConfigurableItem $config): ?\DateTimeInterface
     {
         if ($value instanceof \DateTimeInterface) {
             return $value;
@@ -667,7 +672,7 @@ class SettingsManager implements SettingsManagerInterface
             return new \DateTime((string) $value);
         } catch (\Exception $e) {
             // If DateTime creation fails, return default
-            $default = $config['default'] ?? null;
+            $default = $config->default ?? null;
             
             // If default is a string, try to convert it to DateTime
             if (is_string($default)) {
@@ -689,19 +694,24 @@ class SettingsManager implements SettingsManagerInterface
      * Returns the default value if the enum value is invalid.
      * 
      * @param mixed $value The value to cast to enum
-     * @param array $config The schema configuration containing enumClass
+     * @param ConfigurableItem $config The schema configuration containing enumClass
      * @return mixed The enum instance, default value, or original value
      */
-    protected function castToEnum(mixed $value, array $config): mixed
+    protected function castToEnum(mixed $value, ConfigurableItem $config): mixed
     {
-        if (!$config['enumClass']) {
+        if (!$config->enumClass) {
+            return $value;
+        }
+
+        // If value is already an enum instance of the correct type, return it
+        if (is_object($value) && $value instanceof $config->enumClass) {
             return $value;
         }
 
         // Use tryFrom to handle invalid values gracefully
-        $enum = $config['enumClass']::tryFrom($value);
+        $enum = $config->enumClass::tryFrom($value);
         
-        return $enum ?? $config['default'] ?? $value;
+        return $enum ?? $config->default ?? $value;
     }
 
     /**
@@ -714,13 +724,13 @@ class SettingsManager implements SettingsManagerInterface
      * 4. Encrypt if setting is marked as encrypted
      * 
      * @param mixed $value The value to serialize
-     * @param array $config The schema configuration
+     * @param ConfigurableItem $config The schema configuration
      * @return string The serialized (and possibly encrypted) string
      */
-    protected function serializeValue(mixed $value, array $config): string
+    protected function serializeValue(mixed $value, ConfigurableItem $config): string
     {
         // Convert enum to value
-        if ($config['type'] === ConfigurableItem::TYPE_ENUM && is_object($value)) {
+        if ($config->type === ConfigurableItem::TYPE_ENUM && is_object($value)) {
             $value = $value->value;
         }
 
@@ -733,7 +743,7 @@ class SettingsManager implements SettingsManagerInterface
         $serialized = json_encode($value);
 
         // Encrypt if needed
-        if ($config['encrypted']) {
+        if ($config->encrypted) {
             $serialized = Crypt::encryptString($serialized);
         }
 
@@ -749,10 +759,10 @@ class SettingsManager implements SettingsManagerInterface
      * 3. Return default if decryption or JSON decode fails
      * 
      * @param string|null $value The stored value from database
-     * @param array $config The schema configuration
+     * @param ConfigurableItem $config The schema configuration
      * @return mixed The deserialized value or default on error
      */
-    protected function deserializeValue(?string $value, array $config): mixed
+    protected function deserializeValue(?string $value, ConfigurableItem $config): mixed
     {
         if ($value === null) {
             return null;
@@ -760,7 +770,7 @@ class SettingsManager implements SettingsManagerInterface
 
         try {
             // Decrypt if needed
-            if ($config['encrypted']) {
+            if ($config->encrypted) {
                 $value = Crypt::decryptString($value);
             }
 
@@ -768,7 +778,7 @@ class SettingsManager implements SettingsManagerInterface
             return json_decode($value, true);
         } catch (\Exception $e) {
             // If decryption or JSON decode fails, return default
-            return $config['default'] ?? null;
+            return $config->default ?? null;
         }
     }
 
@@ -798,6 +808,7 @@ class SettingsManager implements SettingsManagerInterface
         ?int $referenceId,
         string $action
     ): void {
+        /** @var Authenticatable|Model|null $user */
         $user = Auth::user();
 
         SettingHistory::create([
@@ -807,7 +818,7 @@ class SettingsManager implements SettingsManagerInterface
             'reference_type' => $scopeKey === 'global' ? null : $scopeKey,
             'reference_id' => $referenceId,
             'user_type' => $user ? get_class($user) : null,
-            'user_id' => $user ? $user->getKey() : null,
+            'user_id' => $user && method_exists($user, 'getKey') ? $user->getKey() : null,
             'action' => $action,
             'created_at' => now(),
         ]);
@@ -818,9 +829,9 @@ class SettingsManager implements SettingsManagerInterface
      * 
      * Returns the cache store specified in config, or the default store if not configured.
      * 
-     * @return \Illuminate\Contracts\Cache\Repository The cache repository instance
+     * @return CacheRepository The cache repository instance
      */
-    protected function cache()
+    protected function cache(): CacheRepository
     {
         return $this->cacheStore 
             ? Cache::store($this->cacheStore)

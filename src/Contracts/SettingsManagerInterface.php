@@ -2,6 +2,7 @@
 
 namespace SgFlores\SchemaSetting\Contracts;
 
+use Illuminate\Database\Eloquent\Model;
 use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
 use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
 use SgFlores\SchemaSetting\Exceptions\InvalidConfigurableException;
@@ -33,84 +34,84 @@ interface SettingsManagerInterface
      * Retrieve a setting value.
      * 
      * @param string $key
-     * @param object|null $model
+     * @param Model|null $model
      * @return mixed
      * @throws SettingNotFoundException
      */
-    public function get(string $key, ?object $model = null): mixed;
+    public function get(string $key, ?Model $model = null): mixed;
 
     /**
      * Retrieve a setting value or throw exception.
      * 
      * @param string $key
-     * @param object|null $model
+     * @param Model|null $model
      * @return mixed
      * @throws SettingNotFoundException
      */
-    public function getOrFail(string $key, ?object $model = null): mixed;
+    public function getOrFail(string $key, ?Model $model = null): mixed;
 
     /**
      * Set/Update a setting value.
      * 
      * @param string $key
      * @param mixed $value
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      * @throws SettingNotFoundException
      * @throws ReadonlySettingException
      * @throws ValidationException
      */
-    public function set(string $key, mixed $value, ?object $model = null): bool;
+    public function set(string $key, mixed $value, ?Model $model = null): bool;
 
     /**
      * Delete a setting.
      * 
      * @param string $key
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      * @throws SettingNotFoundException
      * @throws ReadonlySettingException
      */
-    public function delete(string $key, ?object $model = null): bool;
+    public function delete(string $key, ?Model $model = null): bool;
 
     /**
      * Get multiple settings at once.
      * 
      * @param array $keys
-     * @param object|null $model
+     * @param Model|null $model
      * @return array
      * @throws SettingNotFoundException
      */
-    public function getMultiple(array $keys, ?object $model = null): array;
+    public function getMultiple(array $keys, ?Model $model = null): array;
 
     /**
      * Set multiple settings at once.
      * 
      * @param array $settings
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      * @throws SettingNotFoundException
      * @throws ReadonlySettingException
      * @throws ValidationException
      */
-    public function setMultiple(array $settings, ?object $model = null): bool;
+    public function setMultiple(array $settings, ?Model $model = null): bool;
 
     /**
      * Get all settings for a scope.
      * 
-     * @param object|null $model
+     * @param Model|null $model
      * @return array
      */
-    public function all(?object $model = null): array;
+    public function all(?Model $model = null): array;
 
     /**
      * Check if a setting exists in schema.
      * 
      * @param string $key
-     * @param object|null $model
+     * @param Model|null $model
      * @return bool
      */
-    public function has(string $key, ?object $model = null): bool;
+    public function has(string $key, ?Model $model = null): bool;
 
     /**
      * Get the schema for a scope.
