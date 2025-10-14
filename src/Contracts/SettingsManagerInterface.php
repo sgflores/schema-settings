@@ -116,8 +116,11 @@ interface SettingsManagerInterface
     /**
      * Get the schema for a scope.
      * 
+     * Returns array of ConfigurableItem instances keyed by setting name.
+     * If no scope specified, returns all registered schemas.
+     * 
      * @param string|null $scopeKey
-     * @return array
+     * @return array<string, ConfigurableItem>|array<string, array<string, ConfigurableItem>>
      */
     public function getSchema(?string $scopeKey = null): array;
 

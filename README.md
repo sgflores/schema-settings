@@ -226,144 +226,25 @@ php artisan settings:clear-cache
 
 ## Documentation
 
-- 📖 **[Complete Documentation](DOCUMENTATION.md)** - How the package works
+- 📖 **[Complete Documentation](DOCUMENTATION.md)** - Comprehensive guide with all features
 - 🛠️ **[Helper Functions](HELPERS.md)** - Global helper reference
+- 🧪 **[Testing Guide](tests/README.md)** - Complete test suite documentation
 - 🔧 **[Package Development](PACKAGE-DEVELOPMENT-GUIDE.md)** - For contributors
 
 ## Advanced Features
 
-### Validation
+The package includes powerful features for production applications:
 
-All settings are validated using Laravel's validation rules:
+- ✅ **Validation** - Laravel validation rules enforced on all changes
+- ✅ **Encryption** - Automatic encryption/decryption for sensitive data
+- ✅ **Readonly Settings** - Prevent runtime modification of critical settings
+- ✅ **Grouped Settings** - Organize settings into logical groups
+- ✅ **Enum Support** - PHP 8.1+ enum type safety
+- ✅ **Options/Dropdown** - Restrict values to predefined options
+- ✅ **Exception Handling** - Custom exceptions for better error handling
+- ✅ **Audit Trail** - Track all changes with user attribution and timestamps
 
-```php
-ConfigurableItem::make('email')
-    ->type(ConfigurableItem::TYPE_STRING)
-    ->rules(['required', 'email', 'max:255']);
-
-// This will throw ValidationException
-Settings::set('email', 'invalid-email'); // ❌ Validation fails
-Settings::set('email', 'user@example.com'); // ✅ Success
-```
-
-### Encryption
-
-Sensitive settings are automatically encrypted in the database:
-
-```php
-ConfigurableItem::make('api_key')
-    ->type(ConfigurableItem::TYPE_STRING)
-    ->encrypted(); // Automatically encrypted/decrypted
-```
-
-### Readonly Settings
-
-Prevent runtime modification of critical settings:
-
-```php
-ConfigurableItem::make('installation_date')
-    ->type(ConfigurableItem::TYPE_DATETIME)
-    ->readonly(); // Cannot be modified at runtime
-
-// Throws ReadonlySettingException
-Settings::set('installation_date', now()); // ❌ Error
-```
-
-### Grouped Settings
-
-Organize settings into logical groups:
-
-```php
-ConfigurableItem::make('smtp_host')
-    ->type(ConfigurableItem::TYPE_STRING)
-    ->group('email')
-    ->label('SMTP Host')
-    ->description('Your SMTP server hostname');
-```
-
-### Enum Support (PHP 8.1+)
-
-Type-safe enum support:
-
-```php
-enum Status: string {
-    case Active = 'active';
-    case Inactive = 'inactive';
-}
-
-ConfigurableItem::make('status')
-    ->enum(Status::class)
-    ->default(Status::Active);
-
-// Returns Status enum instance, not string
-$status = Settings::get('status'); // Status::Active
-```
-
-### Options/Dropdown Values
-
-Restrict values to predefined options:
-
-```php
-ConfigurableItem::make('theme')
-    ->type(ConfigurableItem::TYPE_STRING)
-    ->options(['light', 'dark', 'auto'])
-    ->default('light');
-```
-
-### Exception Handling
-
-The package uses custom exceptions for better error handling:
-
-```php
-use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
-use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
-use Illuminate\Validation\ValidationException;
-
-try {
-    Settings::get('non_existent');
-} catch (SettingNotFoundException $e) {
-    // Handle missing setting (404)
-    return response()->json(['error' => $e->getMessage()], 404);
-}
-
-try {
-    Settings::set('readonly_field', 'value');
-} catch (ReadonlySettingException $e) {
-    // Handle readonly violation (403)
-    return response()->json(['error' => $e->getMessage()], 403);
-}
-
-try {
-    Settings::set('email', 'invalid');
-} catch (ValidationException $e) {
-    // Handle validation errors (422)
-    return response()->json(['errors' => $e->errors()], 422);
-}
-```
-
-### Audit Trail
-
-All setting changes are automatically tracked:
-
-```php
-use SgFlores\SchemaSetting\Models\SettingHistory;
-
-// Get history for a setting
-$history = SettingHistory::key('site_name')
-    ->orderBy('created_at', 'desc')
-    ->get();
-
-// Get recent changes
-$recent = SettingHistory::orderBy('created_at', 'desc')
-    ->limit(10)
-    ->get();
-
-// Each history record includes:
-// - old_value, new_value
-// - user_id (who made the change)
-// - action (created/updated/deleted)
-// - created_at (when)
-```
+**👉 See [DOCUMENTATION.md](DOCUMENTATION.md) for detailed examples and usage of all features.**
 
 ## Configuration
 
