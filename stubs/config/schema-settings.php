@@ -39,4 +39,18 @@ return [
         'enabled' => true,
         'table_name' => 'schema_settings_history',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure when and how validation occurs during schema definition.
+    |
+    */
+    'validation' => [
+        'strict_mode' => true,        // Validate during fluent chain (type()/default())
+        'boot_validation' => true,    // Validate during registration
+        'enhanced_errors' => true,    // Provide detailed error messages with hints
+    ],
 ];

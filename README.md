@@ -13,14 +13,13 @@ Schema Settings provides a **type-safe, validated approach** to managing applica
 ### Key Features
 
 - ✅ **Schema-Driven** - Define settings with types, defaults, and validation rules
-- ✅ **Type Safety** - 8 data types with automatic casting (string, int, bool, float, array, json, datetime, enum)
+- ✅ **Type Safety** - 8 data types with automatic casting
+- ✅ **Enhanced Validation** - Immediate type validation with helpful error messages
 - ✅ **Validation** - Laravel validation rules enforced on all changes
 - ✅ **Caching** - Automatic caching with smart invalidation
 - ✅ **Encryption** - Built-in encryption for sensitive data
-- ✅ **Readonly Settings** - Prevent runtime modification of critical settings
 - ✅ **Audit Trail** - Track all changes with user attribution
 - ✅ **Global & Model-Scoped** - Settings for entire app or specific models
-- ✅ **Performance Optimized** - Batch operations use single database queries
 
 ## Installation
 
@@ -142,7 +141,7 @@ if (has_setting('site_name')) {
 }
 ```
 
-### Model-Scoped Settings
+## Model-Scoped Settings
 
 **Define a model-scoped schema:**
 
@@ -160,8 +159,7 @@ class UserSettings implements ConfigurableInterface
         return [
             ConfigurableItem::make('theme')
                 ->type(ConfigurableItem::TYPE_STRING)
-                ->default('light')
-                ->options(['light', 'dark']),
+                ->default('light'),
             
             ConfigurableItem::make('notifications_enabled')
                 ->type(ConfigurableItem::TYPE_BOOLEAN)
@@ -190,9 +188,6 @@ $theme = $user->setting('theme');
 
 // Set user-specific setting
 $user->setSetting('theme', 'dark');
-
-// Get multiple settings
-$preferences = $user->settings(['theme', 'notifications_enabled']);
 ```
 
 ## Available Data Types
@@ -208,43 +203,37 @@ $preferences = $user->settings(['theme', 'notifications_enabled']);
 | `TYPE_DATETIME` | DateTime | `new DateTime()` |
 | `TYPE_ENUM` | Enum | `Status::Active` |
 
+## Enhanced Type Validation
+
+The package includes enhanced validation that catches type mismatches during the fluent chain definition. This provides immediate feedback and prevents runtime errors.
+
+```php
+// ❌ This will throw InvalidSchemaException immediately
+ConfigurableItem::make('setting')
+    ->type(ConfigurableItem::TYPE_INTEGER)
+    ->default('hello'); // Type mismatch!
+
+// ✅ This works correctly
+ConfigurableItem::make('setting')
+    ->type(ConfigurableItem::TYPE_STRING)
+    ->default('hello');
+```
+
 ## Artisan Commands
 
 ```bash
 # List all registered settings
-php artisan settings:list
+php artisan schema-settings:list
 
 # Get a setting value
-php artisan settings:get site_name
+php artisan schema-settings:get site_name
 
 # Set a setting value
-php artisan settings:set site_name "My App"
+php artisan schema-settings:set site_name "My App"
 
 # Clear setting cache
-php artisan settings:clear-cache
+php artisan schema-settings:clear-cache
 ```
-
-## Documentation
-
-- 📖 **[Complete Documentation](DOCUMENTATION.md)** - Comprehensive guide with all features
-- 🛠️ **[Helper Functions](HELPERS.md)** - Global helper reference
-- 🧪 **[Testing Guide](tests/README.md)** - Complete test suite documentation
-- 🔧 **[Package Development](PACKAGE-DEVELOPMENT-GUIDE.md)** - For contributors
-
-## Advanced Features
-
-The package includes powerful features for production applications:
-
-- ✅ **Validation** - Laravel validation rules enforced on all changes
-- ✅ **Encryption** - Automatic encryption/decryption for sensitive data
-- ✅ **Readonly Settings** - Prevent runtime modification of critical settings
-- ✅ **Grouped Settings** - Organize settings into logical groups
-- ✅ **Enum Support** - PHP 8.1+ enum type safety
-- ✅ **Options/Dropdown** - Restrict values to predefined options
-- ✅ **Exception Handling** - Custom exceptions for better error handling
-- ✅ **Audit Trail** - Track all changes with user attribution and timestamps
-
-**👉 See [DOCUMENTATION.md](DOCUMENTATION.md) for detailed examples and usage of all features.**
 
 ## Configuration
 
@@ -265,36 +254,32 @@ return [
         'enabled' => true,
         'table_name' => 'schema_settings_history',
     ],
+
+    'validation' => [
+        'strict_mode' => true,        // Validate during fluent chain
+        'boot_validation' => true,    // Validate during registration  
+        'enhanced_errors' => true,    // Provide detailed error messages
+    ],
 ];
 ```
 
 ## Testing
 
-The package includes a comprehensive, well-organized test suite:
+The package includes a comprehensive test suite:
 
 ```bash
 cd packages/sgflores/schema-settings
 composer test
 ```
 
-**Test Suite Features:**
-- ✅ Comprehensive unit and feature tests
-- ✅ All 8 data types fully tested
-- ✅ PHP 8.1+ enum support (string and integer-backed)
-- ✅ DateTime handling with multiple formats
-- ✅ Batch operations with performance verification
-- ✅ Error recovery and graceful degradation
-- ✅ All console commands tested
-- ✅ Fast execution with in-memory SQLite
-- ✅ Excellent test coverage
+## Documentation
 
-**Test Organization:**
-- Focused test files for better clarity
-- Comprehensive edge case coverage
-- Error scenario testing
-- Performance optimization validation
+For detailed information about advanced features and implementation details:
 
-See `tests/README.md` for detailed test documentation.
+- 📖 **[Complete Documentation](DOCUMENTATION.md)** - Comprehensive guide with all features
+- 🔍 **[Enhanced Validation](ENHANCED-VALIDATION.md)** - Detailed guide to enhanced type validation
+- 🛠️ **[Helper Functions](HELPERS.md)** - Global helper reference
+- 🔧 **[Package Development](PACKAGE-DEVELOPMENT-GUIDE.md)** - For contributors
 
 ## License
 

@@ -116,6 +116,7 @@ class GlobalSettings implements ConfigurableInterface
                 ->label('Installation Date')
                 ->description('When the application was installed')
                 ->readonly(),
+
         ];
     }
 }

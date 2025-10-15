@@ -103,7 +103,7 @@ class ConfigurableItem
      * 
      * @param string $type One of the TYPE_* constants (e.g., TYPE_STRING, TYPE_INTEGER)
      * @return static
-     * @throws InvalidSchemaException If the type is not in ALLOWED_TYPES
+     * @throws InvalidSchemaException If the type is not in ALLOWED_TYPES or conflicts with existing default
      */
     public function type(string $type): static
     {
@@ -115,6 +115,12 @@ class ConfigurableItem
         }
         
         $this->type = $type;
+        
+        // Validate default if it's already set
+        if ($this->default !== null) {
+            $this->validateDefaultType();
+        }
+        
         return $this;
     }
 
@@ -126,10 +132,17 @@ class ConfigurableItem
      * 
      * @param mixed $default The default value
      * @return static
+     * @throws InvalidSchemaException If the default value type doesn't match the declared type
      */
     public function default(mixed $default): static
     {
         $this->default = $default;
+        
+        // Validate immediately if type is already set
+        if (!empty($this->type)) {
+            $this->validateDefaultType();
+        }
+        
         return $this;
     }
 
@@ -327,12 +340,18 @@ class ConfigurableItem
      * 
      * Ensures type safety by checking that defaults are compatible with
      * the setting's declared type (e.g., string default for string type).
+     * Null defaults are always allowed as they represent optional settings.
      * 
      * @return void
      * @throws InvalidSchemaException If the default value type doesn't match
      */
     protected function validateDefaultType(): void
     {
+        // Always allow null defaults - they represent optional settings
+        if ($this->default === null) {
+            return;
+        }
+
         $valid = match ($this->type) {
             self::TYPE_STRING => is_string($this->default),
             self::TYPE_INTEGER => is_int($this->default),
@@ -345,8 +364,21 @@ class ConfigurableItem
         };
 
         if (!$valid) {
+            $actualType = gettype($this->default);
+            $defaultValue = is_scalar($this->default) ? "'{$this->default}'" : gettype($this->default);
+            
+            $hint = match ($this->type) {
+                self::TYPE_INTEGER => "Use ->type(ConfigurableItem::TYPE_INTEGER) for numeric defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_BOOLEAN => "Use ->type(ConfigurableItem::TYPE_BOOLEAN) for true/false values or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_FLOAT => "Use ->type(ConfigurableItem::TYPE_FLOAT) for decimal numbers or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_ARRAY, self::TYPE_JSON => "Use ->type(ConfigurableItem::TYPE_ARRAY) for array defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_DATETIME => "Use ->type(ConfigurableItem::TYPE_DATETIME) for date/time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_ENUM => "Use ->enum(YourEnumClass::class) for enum defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                default => "Ensure the default value type matches the declared type.",
+            };
+            
             throw new InvalidSchemaException(
-                "Default value type mismatch for setting '{$this->key}'. Expected {$this->type}, got " . gettype($this->default),
+                "Type mismatch for setting '{$this->key}': Expected {$this->type}, but default value {$defaultValue} is {$actualType}. {$hint}",
                 $this->key
             );
         }

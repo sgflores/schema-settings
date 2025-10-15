@@ -66,6 +66,17 @@ class ConfigurableItemTest extends TestCase
     }
 
     #[Test]
+    public function it_validates_type_mismatch_during_fluent_chain(): void
+    {
+        $this->expectException(InvalidSchemaException::class);
+        $this->expectExceptionMessage("Type mismatch for setting 'test': Expected integer, but default value 'hello' is string");
+
+        ConfigurableItem::make('test')
+            ->type(ConfigurableItem::TYPE_INTEGER)
+            ->default('hello'); // This should throw an exception
+    }
+
+    #[Test]
     public function it_can_set_rules_as_array(): void
     {
         $item = ConfigurableItem::make('test')
@@ -173,7 +184,7 @@ class ConfigurableItemTest extends TestCase
     public function it_throws_exception_when_default_type_mismatches_string(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("Default value type mismatch");
+        $this->expectExceptionMessage("Type mismatch for setting 'test': Expected string, but default value '123' is integer");
 
         $item = ConfigurableItem::make('test')
             ->type(ConfigurableItem::TYPE_STRING)
