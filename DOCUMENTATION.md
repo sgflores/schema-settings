@@ -138,7 +138,7 @@ src/
 │   ├── Setting.php
 │   └── SettingHistory.php
 ├── Traits/                # Model traits
-│   └── ConfigurableTrait.php
+│   └── HasSettings.php
 ├── helpers.php            # Global helpers
 └── SchemaSettingServiceProvider.php
 ```
@@ -297,7 +297,7 @@ created_at       timestamp
 
 ---
 
-### 6. ConfigurableTrait
+### 6. HasSettings
 
 **Purpose**: Convenient model methods for settings.
 
@@ -305,7 +305,7 @@ created_at       timestamp
 ```php
 class User extends Model
 {
-    use ConfigurableTrait;
+    use HasSettings;
 }
 
 $user->setting('theme');
@@ -399,7 +399,7 @@ SettingsManager::set()
 ```php
 // In your AppServiceProvider or dedicated provider
 use SgFlores\SchemaSetting\Facades\Settings;
-use App\Settings\GlobalSettings;
+use App\SchemaSettings\GlobalSettings;
 
 public function boot(): void
 {
@@ -426,9 +426,14 @@ public static function getKey(): ?string
 
 **Model-Scoped Settings** (`getKey()` returns model class):
 ```php
-public static function getKey(): ?string
+namespace App\SchemaSettings;
+
+class UserSettings implements ConfigurableInterface
 {
-    return \App\Models\User::class;
+    public static function getKey(): ?string
+    {
+        return \App\Models\User::class;
+    }
 }
 ```
 
@@ -661,6 +666,11 @@ Settings can be scoped to any Eloquent model:
 
 ```php
 // Define User-specific settings
+namespace App\SchemaSettings;
+
+use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
+use SgFlores\SchemaSetting\Items\ConfigurableItem;
+
 class UserSettings implements ConfigurableInterface
 {
     public static function getKey(): ?string
@@ -671,9 +681,12 @@ class UserSettings implements ConfigurableInterface
     public static function registerConfigurables(): array
     {
         return [
-            ConfigurableItem::make('theme')
-                ->type(TYPE_STRING)
-                ->default('light'),
+            ConfigurableItem::make('email_notifications')
+                ->type(ConfigurableItem::TYPE_BOOLEAN)
+                ->default(true)
+                ->group('notifications')
+                ->label('Email Notifications')
+                ->description('Receive notifications via email'),
         ];
     }
 }
@@ -684,14 +697,14 @@ class UserSettings implements ConfigurableInterface
 **Via Facade**:
 ```php
 $user = User::find(1);
-Settings::get('theme', $user); // User 1's theme
-Settings::set('theme', 'dark', $user);
+Settings::get('email_notifications', $user); // User 1's notifications setting
+Settings::set('email_notifications', false, $user);
 ```
 
 **Via Trait**:
 ```php
-$user->setting('theme'); // Cleaner
-$user->setSetting('theme', 'dark');
+$user->setting('email_notifications'); // Cleaner
+$user->setSetting('email_notifications', false);
 ```
 
 ### Database Storage

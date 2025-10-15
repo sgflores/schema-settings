@@ -79,8 +79,8 @@ ConfigurableItem::make('created_at')->type(TYPE_DATETIME)->default(new DateTime(
 ConfigurableItem::make('optional_date')->type(TYPE_DATETIME)->default(null); // ✅ Null allowed
 
 // Enum types
-ConfigurableItem::make('status')->enum(StatusEnum::class)->default(StatusEnum::Active);
-ConfigurableItem::make('optional_status')->enum(StatusEnum::class)->default(null); // ✅ Null allowed
+ConfigurableItem::make('status')->enum(\App\Enums\StatusEnum::class)->default(\App\Enums\StatusEnum::Active);
+ConfigurableItem::make('optional_status')->enum(\App\Enums\StatusEnum::class)->default(null); // ✅ Null allowed
 ```
 
 **Note:** Null defaults are always allowed for all types, representing optional settings.

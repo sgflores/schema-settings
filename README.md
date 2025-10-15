@@ -51,17 +51,18 @@ php artisan vendor:publish --tag=schema-settings-configurables
 ```
 
 This creates example schema classes:
-- `app/Settings/GlobalSettings.php` - Application-wide settings
-- `app/Settings/UserSettings.php` - User-specific settings
+- `app/SchemaSettings/GlobalSettings.php` - Application-wide settings
+- `app/SchemaSettings/UserSettings.php` - User-specific settings
+- `app/SchemaSettings/SchemaSettingServiceProvider.php` - Service provider for registering schemas
 
 ### 3. Define Your Settings Schema
 
-Edit `app/Settings/GlobalSettings.php`:
+Edit `app/SchemaSettings/GlobalSettings.php`:
 
 ```php
 <?php
 
-namespace App\Settings;
+namespace App\SchemaSettings;
 
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;
@@ -70,23 +71,27 @@ class GlobalSettings implements ConfigurableInterface
 {
     public static function getKey(): ?string
     {
-        return null; // null = global settings
+        return null; // Null indicates global scope
     }
 
     public static function registerConfigurables(): array
     {
         return [
+            // Basic Settings
             ConfigurableItem::make('site_name')
                 ->type(ConfigurableItem::TYPE_STRING)
-                ->default('My Application')
-                ->rules(['required', 'string', 'max:255'])
+                ->default('Awesome App')
                 ->group('general')
-                ->label('Site Name'),
-
-            ConfigurableItem::make('maintenance_mode')
-                ->type(ConfigurableItem::TYPE_BOOLEAN)
-                ->default(false)
-                ->group('general'),
+                ->label('Site Name')
+                ->description('The name of your application')
+                ->rules(['required', 'min:3', 'max:255']),
+            
+            ConfigurableItem::make('site_description')
+                ->type(ConfigurableItem::TYPE_STRING)
+                ->default('Welcome to our application')
+                ->group('general')
+                ->label('Site Description')
+                ->description('A brief description of your site'),
         ];
     }
 }
@@ -94,11 +99,47 @@ class GlobalSettings implements ConfigurableInterface
 
 ### 4. Register Your Schema
 
-In your `AppServiceProvider` (or dedicated provider):
+#### Option 1: Using the Generated Service Provider (Recommended)
+
+The package generates a `SchemaSettingServiceProvider` for you. Register it in `bootstrap/providers.php`:
+
+```php
+<?php
+
+return [
+    App\Providers\AppServiceProvider::class,
+    App\SchemaSettings\SchemaSettingServiceProvider::class, // Add this line
+];
+```
+
+The generated service provider will automatically register your schema classes:
+
+```php
+<?php
+
+namespace App\SchemaSettings;
+
+use Illuminate\Support\ServiceProvider;
+use SgFlores\SchemaSetting\Facades\Settings;
+
+class SchemaSettingServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        // Register your schema classes here
+        Settings::register(GlobalSettings::class);
+        Settings::register(UserSettings::class);
+    }
+}
+```
+
+#### Option 2: Manual Registration
+
+Alternatively, register schemas directly in your `AppServiceProvider`:
 
 ```php
 use SgFlores\SchemaSetting\Facades\Settings;
-use App\Settings\GlobalSettings;
+use App\SchemaSettings\GlobalSettings;
 
 public function boot(): void
 {
@@ -146,24 +187,37 @@ if (has_setting('site_name')) {
 **Define a model-scoped schema:**
 
 ```php
-// app/Settings/UserSettings.php
+// app/SchemaSettings/UserSettings.php
+namespace App\SchemaSettings;
+
+use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
+use SgFlores\SchemaSetting\Items\ConfigurableItem;
+
 class UserSettings implements ConfigurableInterface
 {
     public static function getKey(): ?string
     {
-        return \App\Models\User::class; // Scoped to User model
+        return \App\Models\User::class;
     }
 
     public static function registerConfigurables(): array
     {
         return [
-            ConfigurableItem::make('theme')
-                ->type(ConfigurableItem::TYPE_STRING)
-                ->default('light'),
-            
-            ConfigurableItem::make('notifications_enabled')
+            // Notification Settings
+            ConfigurableItem::make('email_notifications')
                 ->type(ConfigurableItem::TYPE_BOOLEAN)
-                ->default(true),
+                ->default(true)
+                ->group('notifications')
+                ->label('Email Notifications')
+                ->description('Receive notifications via email'),
+
+            ConfigurableItem::make('timezone')
+                ->type(ConfigurableItem::TYPE_STRING)
+                ->default('UTC')
+                ->group('localization')
+                ->label('Timezone')
+                ->description('Your timezone for date/time display')
+                ->rules(['required', 'timezone']),
         ];
     }
 }
@@ -172,11 +226,11 @@ class UserSettings implements ConfigurableInterface
 **Add the trait to your model:**
 
 ```php
-use SgFlores\SchemaSetting\Traits\ConfigurableTrait;
+use SgFlores\SchemaSetting\Traits\HasSettings;
 
 class User extends Model
 {
-    use ConfigurableTrait;
+    use HasSettings;
 }
 ```
 
@@ -184,10 +238,10 @@ class User extends Model
 
 ```php
 // Get user-specific setting
-$theme = $user->setting('theme');
+$notifications = $user->setting('email_notifications');
 
 // Set user-specific setting
-$user->setSetting('theme', 'dark');
+$user->setSetting('timezone', 'America/New_York');
 ```
 
 ## Available Data Types
@@ -268,9 +322,32 @@ return [
 The package includes a comprehensive test suite:
 
 ```bash
-cd packages/sgflores/schema-settings
 composer test
 ```
+
+## Alternative Packages
+
+If this package doesn't meet your needs, here are some alternative Laravel settings packages:
+
+### [Spatie Laravel Settings](https://github.com/spatie/laravel-settings)
+- **Approach**: Class-based settings with strongly typed properties
+- **Strengths**: Well-established, comprehensive feature set, excellent documentation
+- **Use Case**: When you prefer class-based settings with property definitions
+
+### [Rawilk Laravel Settings](https://github.com/rawilk/laravel-settings)
+- **Approach**: Database-driven settings with key-value storage
+- **Strengths**: Simple implementation, database storage, caching support
+- **Use Case**: When you need simple key-value settings without complex schemas
+
+### Why Choose Schema Settings?
+
+It offers a unique **schema-driven approach** that provides:
+
+- ✅ **Fluent API** - Easy-to-read schema definitions with method chaining
+- ✅ **Enhanced Validation** - Immediate type validation during schema definition
+- ✅ **Model Scoping** - Settings can belong to specific models (users, teams, etc.)
+- ✅ **Comprehensive Features** - Validation, caching, encryption, and audit trails out of the box
+- ✅ **Developer Experience** - Helpful error messages and comprehensive documentation
 
 ## Documentation
 

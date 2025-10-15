@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Configurables;
+namespace App\SchemaSettings;
 
 use Illuminate\Support\ServiceProvider;
 use SgFlores\SchemaSetting\Facades\Settings;
 
-class ConfigurableServiceProvider extends ServiceProvider
+class SchemaSettingServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
