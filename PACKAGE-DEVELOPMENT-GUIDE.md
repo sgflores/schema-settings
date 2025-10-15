@@ -74,9 +74,9 @@ interface ConfigurableInterface {
 ```
 
 Users can create:
-- `GlobalSettings` (getKey returns null)
-- `UserSettings` (getKey returns User::class)
-- `TeamSettings` (getKey returns Team::class)
+- `App\SchemaSettings\GlobalSettings` (getKey returns null)
+- `App\SchemaSettings\UserSettings` (getKey returns User::class)
+- `App\SchemaSettings\TeamSettings` (getKey returns Team::class)
 
 ### Why Eloquent Models?
 
@@ -134,6 +134,9 @@ This package is developed within a Laravel monorepo:
 ```
 Laravel-Packager/
 ├── app/
+│   └── SchemaSettings/       ← Schema classes here
+├── bootstrap/
+│   └── providers.php         ← Service provider registration (Laravel 12)
 ├── packages/
 │   └── sgflores/
 │       └── schema-settings/  ← Package here
@@ -216,7 +219,7 @@ packages/sgflores/schema-settings/
 │   │   ├── Setting.php             # Settings storage
 │   │   └── SettingHistory.php      # Audit trail
 │   ├── Traits/                     # Reusable traits
-│   │   └── ConfigurableTrait.php   # For models
+│   │   └── HasSettings.php   # For models
 │   ├── helpers.php                 # Global helper functions
 │   └── SchemaSettingServiceProvider.php  # Package entry point
 ├── stubs/                          # Publishable files
@@ -227,7 +230,8 @@ packages/sgflores/schema-settings/
 │   │   └── 2025_10_13_000001_create_schema_settings_history_table.php
 │   └── app/
 │       ├── GlobalSettings.php
-│       └── UserSettings.php
+│       ├── UserSettings.php
+│       └── SchemaSettingServiceProvider.php
 ├── tests/                          # Test suite
 │   ├── Feature/                    # Integration tests
 │   ├── Unit/                       # Unit tests
@@ -475,7 +479,7 @@ tests/
 │   └── ErrorRecoveryTest.php       # Error handling
 ├── Unit/                            # Unit tests
 │   ├── ConfigurableItemTest.php    # Schema builder
-│   ├── ConfigurableTraitTest.php   # Model trait
+│   ├── HasSettingsTest.php   # Model trait
 │   ├── ServiceProviderTest.php     # Service provider
 │   ├── ExceptionsTest.php          # Exceptions
 │   ├── SettingModelTest.php        # Setting model

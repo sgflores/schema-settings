@@ -6,7 +6,7 @@ use Illuminate\Validation\ValidationException;
 use SgFlores\SchemaSetting\Facades\Settings;
 
 /**
- * ConfigurableTrait
+ * HasSettings
  * 
  * Trait for Eloquent models to provide convenient instance methods for managing settings.
  * Add this trait to any model that has associated settings defined in a schema.
@@ -20,7 +20,7 @@ use SgFlores\SchemaSetting\Facades\Settings;
  * 
  * @package SgFlores\SchemaSetting\Traits
  */
-trait ConfigurableTrait
+trait HasSettings
 {
     /**
      * Get a setting value for this model instance.

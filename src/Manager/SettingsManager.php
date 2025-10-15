@@ -123,7 +123,6 @@ class SettingsManager implements SettingsManagerInterface
         }
     }
 
-
     /**
      * Retrieve a setting value, checking cache first.
      * 
@@ -151,9 +150,12 @@ class SettingsManager implements SettingsManagerInterface
         
         $cacheKey = $this->getCacheKey($scopeKey, $model?->getKey(), $key);
 
-        $value = $this->cacheEnabled 
-            ? $this->cache()->remember($cacheKey, $this->cacheTtl, fn() => $this->fetchFromDatabase($key, $model, $config))
+        $value = $this->cacheEnabled
+            ? $this->cache()->remember($cacheKey, $this->cacheTtl, function () use ($key, $model, $config) {
+                return $this->fetchFromDatabase($key, $model, $config);
+            })
             : $this->fetchFromDatabase($key, $model, $config);
+
 
         return $value;
     }
@@ -214,7 +216,11 @@ class SettingsManager implements SettingsManagerInterface
      * 4. Serialize value (encrypt if needed)
      * 5. Save to database (create or update)
      * 6. Invalidate cache
-     * 7. Record audit trail entry
+     * 7. Record audit trail entry (only if value changed or new record)
+     * 
+     * Audit trail entries are only created when:
+     * - Setting a value for the first time (new record)
+     * - Setting a different value than what's currently stored
      * 
      * @param string $key The setting key to set
      * @param mixed $value The value to store
@@ -249,6 +255,9 @@ class SettingsManager implements SettingsManagerInterface
         // Serialize and optionally encrypt the value
         $serializedValue = $this->serializeValue($value, $config);
 
+        // Check if the value actually changed (only for updates, not new records)
+        $valueChanged = $isNew || $oldValue !== $serializedValue;
+
         // Update or create the setting
         $setting = Setting::updateOrCreate(
             [
@@ -262,8 +271,8 @@ class SettingsManager implements SettingsManagerInterface
         // Invalidate cache
         $this->invalidateCache($scopeKey, $model?->getKey(), $key);
 
-        // Record in audit trail
-        if ($this->auditEnabled) {
+        // Record in audit trail only if value actually changed or it's a new record
+        if ($this->auditEnabled && ($isNew || $valueChanged)) {
             $this->recordAudit(
                 $key,
                 $oldValue,
@@ -386,6 +395,8 @@ class SettingsManager implements SettingsManagerInterface
      * 
      * All settings are updated atomically - if any validation fails, no settings
      * are saved. This ensures data consistency for bulk updates.
+     * 
+     * Only settings that actually change values will be recorded in the audit trail.
      * 
      * @param array<string, mixed> $settings Associative array of key => value pairs to set
      * @param Model|null $model Optional Eloquent model instance for model-scoped settings

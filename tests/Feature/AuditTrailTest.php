@@ -281,4 +281,106 @@ class AuditTrailTest extends TestCase
         $this->assertEquals('created', $history->action);
         // The new_value should be encrypted in the actual database
     }
+
+    #[Test]
+    public function it_does_not_record_audit_when_setting_same_value(): void
+    {
+        // Set initial value - should create audit entry
+        $this->manager->set('site_name', 'Same Value');
+        
+        $initialCount = SettingHistory::where('key', 'site_name')->count();
+        $this->assertEquals(1, $initialCount);
+
+        // Set the same value again - should NOT create audit entry
+        $this->manager->set('site_name', 'Same Value');
+        
+        $finalCount = SettingHistory::where('key', 'site_name')->count();
+        $this->assertEquals(1, $finalCount); // Count should remain the same
+
+        // Verify the single entry is the original 'created' entry
+        $history = SettingHistory::where('key', 'site_name')->first();
+        $this->assertEquals('created', $history->action);
+    }
+
+    #[Test]
+    public function it_records_audit_when_setting_different_value(): void
+    {
+        // Set initial value
+        $this->manager->set('site_name', 'First Value');
+        
+        $initialCount = SettingHistory::where('key', 'site_name')->count();
+        $this->assertEquals(1, $initialCount);
+
+        // Set different value - should create audit entry
+        $this->manager->set('site_name', 'Second Value');
+        
+        $finalCount = SettingHistory::where('key', 'site_name')->count();
+        $this->assertEquals(2, $finalCount); // Should have 2 entries now
+
+        // Verify we have both 'created' and 'updated' entries
+        $created = SettingHistory::where('key', 'site_name')->where('action', 'created')->count();
+        $updated = SettingHistory::where('key', 'site_name')->where('action', 'updated')->count();
+        
+        $this->assertEquals(1, $created);
+        $this->assertEquals(1, $updated);
+    }
+
+    #[Test]
+    public function it_handles_same_value_optimization_for_model_scoped_settings(): void
+    {
+        // Set initial value for user - should create audit entry
+        $this->user->setSetting('theme', 'dark');
+        
+        $initialCount = SettingHistory::where('key', 'theme')
+            ->where('reference_id', $this->user->id)
+            ->count();
+        $this->assertEquals(1, $initialCount);
+
+        // Set same value again - should NOT create audit entry
+        $this->user->setSetting('theme', 'dark');
+        
+        $finalCount = SettingHistory::where('key', 'theme')
+            ->where('reference_id', $this->user->id)
+            ->count();
+        $this->assertEquals(1, $finalCount); // Count should remain the same
+
+        // Set different value - should create audit entry
+        $this->user->setSetting('theme', 'light');
+        
+        $updatedCount = SettingHistory::where('key', 'theme')
+            ->where('reference_id', $this->user->id)
+            ->count();
+        $this->assertEquals(2, $updatedCount); // Should have 2 entries now
+    }
+
+    #[Test]
+    public function it_handles_same_value_optimization_in_batch_operations(): void
+    {
+        // Set initial values
+        $this->manager->setMultiple([
+            'site_name' => 'Original Site',
+            'max_users' => 100,
+        ]);
+        
+        $initialCount = SettingHistory::where('action', 'created')->count();
+        $this->assertEquals(2, $initialCount);
+
+        // Set same values again - should NOT create audit entries
+        $this->manager->setMultiple([
+            'site_name' => 'Original Site',
+            'max_users' => 100,
+        ]);
+        
+        $finalCount = SettingHistory::where('action', 'created')->count();
+        $this->assertEquals(2, $finalCount); // Count should remain the same
+
+        // Set mixed values (one same, one different) - should create 1 audit entry
+        $this->manager->setMultiple([
+            'site_name' => 'Original Site', // Same value
+            'max_users' => 200,            // Different value
+        ]);
+        
+        $updatedCount = SettingHistory::where('action', 'updated')->count();
+        $this->assertEquals(1, $updatedCount); // Only max_users should create audit entry
+    }
 }

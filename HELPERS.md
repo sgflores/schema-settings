@@ -24,7 +24,7 @@ $siteName = setting('site_name');
 $theme = setting('theme', 'light');
 
 // For a specific model (must be an Eloquent Model instance)
-$userTheme = setting('theme', 'light', $user);
+$userNotifications = setting('email_notifications', true, $user);
 ```
 
 **Parameters:**
@@ -45,7 +45,7 @@ Set a setting value.
 set_setting('site_name', 'My Awesome Site');
 
 // Set for a specific model (must be an Eloquent Model instance)
-set_setting('theme', 'dark', $user);
+set_setting('email_notifications', false, $user);
 ```
 
 **Parameters:**
@@ -68,8 +68,8 @@ if (has_setting('site_name')) {
 }
 
 // Check model-scoped setting
-if (has_setting('theme', $user)) {
-    // User has theme setting
+if (has_setting('email_notifications', $user)) {
+    // User has notification setting
 }
 ```
 
@@ -90,7 +90,7 @@ Delete a setting (returns to default value).
 delete_setting('site_name');
 
 // Delete model-scoped setting
-delete_setting('theme', $user);
+delete_setting('email_notifications', $user);
 ```
 
 **Parameters:**
@@ -110,7 +110,7 @@ Get multiple settings at once.
 $config = settings(['site_name', 'maintenance_mode', 'max_users']);
 
 // Get multiple user settings
-$userPrefs = settings(['theme', 'notifications_enabled'], $user);
+$userPrefs = settings(['email_notifications', 'timezone'], $user);
 ```
 
 **Parameters:**
@@ -165,8 +165,7 @@ class SettingsController extends Controller
         
         // Get user-specific settings
         $userPrefs = settings([
-            'theme',
-            'notifications_enabled',
+            'email_notifications',
             'timezone'
         ], $user);
         
@@ -192,20 +191,20 @@ class SettingsController extends Controller
 ```php
 class User extends Authenticatable
 {
-    use ConfigurableTrait;
+    use HasSettings;
     
-    public function getPreferredTheme()
+    public function getNotificationPreference()
     {
-        return setting('theme', 'light', $this);
+        return setting('email_notifications', true, $this);
         // or
-        return $this->setting('theme');
+        return $this->setting('email_notifications');
     }
     
-    public function updateTheme($theme)
+    public function updateNotificationPreference($enabled)
     {
-        return set_setting('theme', $theme, $this);
+        return set_setting('email_notifications', $enabled, $this);
         // or
-        return $this->setSetting('theme', $theme);
+        return $this->setSetting('email_notifications', $enabled);
     }
 }
 ```
@@ -273,12 +272,11 @@ if (has_setting('non_existent_key')) { // Returns false, no error
 
 ```php
 // ❌ Multiple calls
-$theme = setting('theme', null, $user);
-$notifications = setting('notifications_enabled', null, $user);
+$notifications = setting('email_notifications', null, $user);
 $timezone = setting('timezone', null, $user);
 
 // ✅ Single batch call
-$userSettings = settings(['theme', 'notifications_enabled', 'timezone'], $user);
+$userSettings = settings(['email_notifications', 'timezone'], $user);
 ```
 
 ---

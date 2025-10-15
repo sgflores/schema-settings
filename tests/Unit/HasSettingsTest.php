@@ -12,7 +12,7 @@ use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
 use SgFlores\SchemaSetting\Tests\TestCase;
 
-class ConfigurableTraitTest extends TestCase
+class HasSettingsTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -44,7 +44,7 @@ class SchemaSettingServiceProvider extends ServiceProvider
         
         // Publish configurable examples
         $this->publishes([
-            __DIR__.'/../stubs/app' => app_path('Configurables'),
+            __DIR__.'/../stubs/app' => app_path('SchemaSettings'),
         ], 'schema-settings-configurables');
 
         // Publish migrations

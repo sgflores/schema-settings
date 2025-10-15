@@ -3,11 +3,11 @@
 namespace SgFlores\SchemaSetting\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
-use SgFlores\SchemaSetting\Traits\ConfigurableTrait;
+use SgFlores\SchemaSetting\Traits\HasSettings;
 
 class TestTeam extends Model
 {
-    use ConfigurableTrait;
+    use HasSettings;
 
     protected $table = 'teams';
 
