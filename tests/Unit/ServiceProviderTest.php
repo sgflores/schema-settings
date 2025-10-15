@@ -82,6 +82,17 @@ class ServiceProviderTest extends TestCase
         $this->assertTrue(config()->has('schema-settings.audit.table_name'));
     }
 
+
+    #[Test]
+    public function config_has_validation_settings(): void
+    {
+        $this->assertTrue(config()->has('schema-settings.validation'));
+        $this->assertIsArray(config('schema-settings.validation'));
+        $this->assertTrue(config()->has('schema-settings.validation.strict_mode'));
+        $this->assertTrue(config()->has('schema-settings.validation.boot_validation'));
+        $this->assertTrue(config()->has('schema-settings.validation.enhanced_errors'));
+    }
+
     #[Test]
     public function all_commands_are_registered(): void
     {
@@ -145,6 +156,11 @@ class ServiceProviderTest extends TestCase
         $this->assertStringContainsString('settings_', config('schema-settings.cache.prefix'));
         $this->assertTrue(config('schema-settings.audit.enabled'));
         $this->assertEquals('schema_settings_history', config('schema-settings.audit.table_name'));
+        
+        // Validation defaults
+        $this->assertTrue(config('schema-settings.validation.strict_mode'));
+        $this->assertTrue(config('schema-settings.validation.boot_validation'));
+        $this->assertTrue(config('schema-settings.validation.enhanced_errors'));
     }
 
     #[Test]

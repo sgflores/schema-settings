@@ -123,6 +123,7 @@ class SettingsManager implements SettingsManagerInterface
         }
     }
 
+
     /**
      * Retrieve a setting value, checking cache first.
      * 
@@ -837,4 +838,5 @@ class SettingsManager implements SettingsManagerInterface
             ? Cache::store($this->cacheStore)
             : Cache::store();
     }
+
 }
