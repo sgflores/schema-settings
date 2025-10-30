@@ -53,16 +53,17 @@ php artisan vendor:publish --tag=schema-settings-configurables
 This creates example schema classes:
 - `app/SchemaSettings/GlobalSettings.php` - Application-wide settings
 - `app/SchemaSettings/UserSettings.php` - User-specific settings
-- `app/SchemaSettings/SchemaSettingServiceProvider.php` - Service provider for registering schemas
+- `app/Providers/SchemaSettings/SchemaSettingServiceProvider.php` - Service provider for registering schemas
+- `app/Providers/SchemaSettings/SchemaSettingServiceProvider.php` - Service provider for registering schemas
 
 ### 3. Define Your Settings Schema
 
-Edit `app/SchemaSettings/GlobalSettings.php`:
+Edit `app/Providers/SchemaSettings/GlobalSettings.php`:
 
 ```php
 <?php
 
-namespace App\SchemaSettings;
+namespace App\Providers\SchemaSettings;
 
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;
@@ -101,14 +102,14 @@ class GlobalSettings implements ConfigurableInterface
 
 #### Option 1: Using the Generated Service Provider (Recommended)
 
-The package generates a `SchemaSettingServiceProvider` for you. Register it in `bootstrap/providers.php`:
+The package generates a `SchemaSettingServiceProvider` for you under `app/Providers/SchemaSettings`. Register it in `bootstrap/providers.php`:
 
 ```php
 <?php
 
 return [
     App\Providers\AppServiceProvider::class,
-    App\SchemaSettings\SchemaSettingServiceProvider::class, // Add this line
+    App\Providers\SchemaSettings\SchemaSettingServiceProvider::class, // Add this line
 ];
 ```
 
@@ -117,7 +118,7 @@ The generated service provider will automatically register your schema classes:
 ```php
 <?php
 
-namespace App\SchemaSettings;
+namespace App\Providers\SchemaSettings;
 
 use Illuminate\Support\ServiceProvider;
 use SgFlores\SchemaSetting\Facades\Settings;
@@ -139,7 +140,7 @@ Alternatively, register schemas directly in your `AppServiceProvider`:
 
 ```php
 use SgFlores\SchemaSetting\Facades\Settings;
-use App\SchemaSettings\GlobalSettings;
+use App\Providers\SchemaSettings\GlobalSettings;
 
 public function boot(): void
 {
@@ -187,8 +188,8 @@ if (has_setting('site_name')) {
 **Define a model-scoped schema:**
 
 ```php
-// app/SchemaSettings/UserSettings.php
-namespace App\SchemaSettings;
+// app/Providers/SchemaSettings/UserSettings.php
+namespace App\Providers\SchemaSettings;
 
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;

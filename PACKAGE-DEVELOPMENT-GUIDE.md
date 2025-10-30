@@ -134,9 +134,12 @@ This package is developed within a Laravel monorepo:
 ```
 Laravel-Packager/
 ├── app/
-│   └── SchemaSettings/       ← Schema classes here
+│   ├── Providers/
+│   │   └── SchemaSettings/
+│   │       └── SchemaSettingServiceProvider.php   ← Published provider location
+│   └── SchemaSettings/                            ← Project schema classes here
 ├── bootstrap/
-│   └── providers.php         ← Service provider registration (Laravel 12)
+│   └── providers.php                              ← Provider registration (Laravel 12)
 ├── packages/
 │   └── sgflores/
 │       └── schema-settings/  ← Package here
@@ -298,6 +301,15 @@ public function boot(): void
         ]
     }
 }
+```
+
+After publishing, register the app provider (Laravel 12+) in `bootstrap/providers.php`:
+
+```php
+return [
+    // ... other providers
+    App\\Providers\\SchemaSettings\\SchemaSettingServiceProvider::class,
+];
 ```
 
 ---

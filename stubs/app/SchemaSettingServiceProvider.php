@@ -1,6 +1,6 @@
 <?php
 
-namespace App\SchemaSettings;
+namespace App\Providers\SchemaSettings;
 
 use Illuminate\Support\ServiceProvider;
 use SgFlores\SchemaSetting\Facades\Settings;
