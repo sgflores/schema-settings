@@ -141,6 +141,16 @@ src/
 │   └── HasSettings.php
 ├── helpers.php            # Global helpers
 └── SchemaSettingServiceProvider.php
+├── stubs/                          # Publishable files
+│   ├── config/
+│   │   └── schema-settings.php
+│   ├── database/
+│   │   ├── 2025_10_13_000000_create_schema_settings_table.php
+│   │   └── 2025_10_13_000001_create_schema_settings_history_table.php
+│   └── app/
+│       ├── GlobalSettings.php
+│       ├── UserSettings.php
+│       └── SchemaSettingServiceProvider.php       # Publish to app/Providers/SchemaSettings/
 ```
 
 ---
@@ -397,9 +407,9 @@ SettingsManager::set()
 ### Registration Process
 
 ```php
-// In your AppServiceProvider or dedicated provider
+// In your published provider at app/Providers/SchemaSettings/SchemaSettingServiceProvider.php
 use SgFlores\SchemaSetting\Facades\Settings;
-use App\SchemaSettings\GlobalSettings;
+use App\Providers\SchemaSettings\GlobalSettings;
 
 public function boot(): void
 {
@@ -426,7 +436,7 @@ public static function getKey(): ?string
 
 **Model-Scoped Settings** (`getKey()` returns model class):
 ```php
-namespace App\SchemaSettings;
+namespace App\Providers\SchemaSettings;
 
 class UserSettings implements ConfigurableInterface
 {
@@ -666,7 +676,7 @@ Settings can be scoped to any Eloquent model:
 
 ```php
 // Define User-specific settings
-namespace App\SchemaSettings;
+namespace App\Providers\SchemaSettings;
 
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;

@@ -19,6 +19,8 @@ return [
 ];
 ```
 
+Note: when you publish the package stubs, the provider will be placed under `app/Providers/SchemaSettings/SchemaSettingServiceProvider.php`.
+
 ### Usage
 
 #### Immediate Validation

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\SchemaSettings;
+namespace App\Providers\SchemaSettings;
 
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;
