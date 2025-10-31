@@ -112,3 +112,21 @@ if (!function_exists('all_settings')) {
     }
 }
 
+if (!function_exists('schema_with_values')) {
+    /**
+     * Get schema configuration with persisted values for form generation.
+     *
+     * @param array|string $keys Array of setting keys or single key (empty = all keys)
+     * @param Model|null $model
+     * @return array
+     */
+    function schema_with_values(array|string $keys = [], ?Model $model = null): array
+    {
+        try {
+            return Settings::getSchemaWithValues($keys, $model);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+}
+

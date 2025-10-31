@@ -249,6 +249,10 @@ getMultiple(array $keys, ?Model $model = null): array<string, mixed>
 setMultiple(array $settings, ?Model $model = null): bool
 all(?Model $model = null): array<string, mixed>
 
+// Schema & Form Generation
+getSchema(?string $scopeKey = null): array
+getSchemaWithValues(array|string $keys, ?Model $model = null): array<string, array<string, mixed>>
+
 // Cache Management
 clearCache(?string $scopeKey = null, ?int $referenceId = null): void
 ```
@@ -773,6 +777,326 @@ Readable cache keys enable:
 - Easy debugging
 - Manual cache inspection
 - Selective clearing
+
+### 5. Schema with Values for Form Generation
+
+Use `getSchemaWithValues()` to get schema configuration with persisted values in a single optimized query. Perfect for generating frontend forms:
+
+```php
+// Get schema with values for specific keys
+$formData = Settings::getSchemaWithValues(['site_name', 'site_description', 'maintenance_mode']);
+
+// Returns:
+// [
+//     'site_name' => [
+//         'key' => 'site_name',
+//         'type' => 'string',
+//         'default' => 'Awesome App',
+//         'rules' => ['required', 'min:3', 'max:255'],
+//         'group' => 'general',
+//         'label' => 'Site Name',
+//         'description' => 'The name of your application',
+//         'encrypted' => false,
+//         'readonly' => false,
+//         'enumClass' => null,
+//         'options' => [],
+//         'value' => 'My Current Site Name', // ← Persisted value or default
+//     ],
+//     // ... more settings
+// ]
+
+// Accepts single key as string
+$singleSchema = Settings::getSchemaWithValues('site_name');
+
+// Empty array = all settings for scope
+$allSettings = Settings::getSchemaWithValues([]);
+
+// Model-scoped settings
+$userSchema = Settings::getSchemaWithValues(['theme', 'timezone'], $user);
+```
+
+**Benefits:**
+- Single database query for all requested settings
+- Includes both schema metadata and current values
+- Filters empty keys automatically
+- Perfect for API endpoints serving form data to frontends
+
+---
+
+## API Routes
+
+### Overview
+
+The package provides RESTful API routes for retrieving settings schema with values. This is particularly useful for frontend applications that need to generate dynamic forms based on the settings schema.
+
+### Configuration
+
+API routes can be configured in `config/schema-settings.php`:
+
+```php
+'routes' => [
+    'prefix' => env('SCHEMA_SETTINGS_ROUTE_PREFIX', 'api/schema-settings'),
+    'middleware' => env('SCHEMA_SETTINGS_MIDDLEWARE', null),
+    'name_prefix' => 'schema_settings.',
+    'enabled' => env('SCHEMA_SETTINGS_ROUTES_ENABLED', true),
+],
+```
+
+**Configuration Options:**
+- `prefix`: URL prefix for all routes (default: `api/schema-settings`)
+- `middleware`: Authentication/authorization middleware (default: `null` - no middleware by default)
+- `name_prefix`: Route name prefix for reverse routing (default: `schema_settings.`)
+- `enabled`: Enable/disable routes entirely (default: `true`)
+
+### Endpoints
+
+**Base URL**: `GET /api/schema-settings`
+
+**Query Parameters:**
+- `key` (string, optional): Single setting key to retrieve
+- `keys[]` (array, optional): Array of setting keys to retrieve
+
+**Behavior:**
+- If `key` is provided: Returns schema with value for that single setting
+- If `keys[]` is provided: Returns schema with values for all specified settings
+- If neither provided: Returns schema with values for all settings in the scope
+
+### Request Examples
+
+**All Settings:**
+```http
+# Without authentication (default)
+GET /api/schema-settings
+
+# With authentication (if configured)
+GET /api/schema-settings
+Authorization: Bearer {token}
+```
+
+### Response Format
+
+**Success Response (200 OK):**
+```json
+{
+    "success": true,
+    "data": {
+        "site_name": {
+            "key": "site_name",
+            "type": "string",
+            "default": "Awesome App",
+            "rules": ["required", "min:3", "max:255"],
+            "group": "general",
+            "label": "Site Name",
+            "description": "The name of your application",
+            "encrypted": false,
+            "readonly": false,
+            "enumClass": null,
+            "options": [],
+            "value": "My Current Site Name"
+        },
+        "maintenance_mode": {
+            "key": "maintenance_mode",
+            "type": "boolean",
+            "default": false,
+            "rules": [],
+            "group": "system",
+            "label": "Maintenance Mode",
+            "description": "Enable maintenance mode",
+            "encrypted": false,
+            "readonly": false,
+            "enumClass": null,
+            "options": [],
+            "value": true
+        }
+    }
+}
+```
+
+**Error Responses:**
+
+**404 Not Found** (Setting key doesn't exist):
+```json
+{
+    "success": false,
+    "error": "Setting key 'nonexistent' not found"
+}
+```
+
+**400 Bad Request** (Schema validation error):
+```json
+{
+    "success": false,
+    "error": "Invalid schema configuration"
+}
+```
+
+**422 Unprocessable Entity** (Request validation error):
+```json
+{
+    "message": "The keys parameter must be an array.",
+    "errors": {
+        "keys": ["The keys parameter must be an array."]
+    }
+}
+```
+
+**500 Internal Server Error** (Unexpected error):
+```json
+{
+    "success": false,
+    "error": "An internal server error occurred while retrieving settings."
+}
+```
+
+### Validation Rules
+
+The `SettingsRequest` validates:
+- `key`: Optional string, max 255 characters
+- `keys`: Optional array, max 50 items
+- `keys.*`: Required string, max 255 characters each
+
+Empty keys in arrays are automatically filtered out before validation.
+
+### Use Cases
+
+**1. Frontend Form Generation:**
+```javascript
+// Fetch settings schema (no auth required by default)
+const response = await fetch('/api/schema-settings?keys[]=site_name&keys[]=site_description');
+
+// Or with authentication if configured
+// const response = await fetch('/api/schema-settings?keys[]=site_name&keys[]=site_description', {
+//     headers: {
+//         'Authorization': `Bearer ${token}`
+//     }
+// });
+
+const { data } = await response.json();
+
+// Generate form fields dynamically
+Object.entries(data).forEach(([key, schema]) => {
+    const field = createFormField({
+        name: key,
+        type: schema.type,
+        label: schema.label,
+        description: schema.description,
+        value: schema.value,
+        rules: schema.rules,
+        options: schema.options,
+        readonly: schema.readonly
+    });
+    
+    form.addField(field);
+});
+```
+
+**2. Settings Dashboard:**
+```javascript
+// Fetch all settings for admin dashboard (no auth required by default)
+const response = await fetch('/api/schema-settings');
+
+// Or with authentication if configured
+// const response = await fetch('/api/schema-settings', {
+//     headers: {
+//         'Authorization': `Bearer ${token}`
+//     }
+// });
+
+const { data } = await response.json();
+
+// Group settings by group
+const grouped = Object.entries(data).reduce((acc, [key, schema]) => {
+    const group = schema.group || 'general';
+    if (!acc[group]) acc[group] = [];
+    acc[group].push({ key, ...schema });
+    return acc;
+}, {});
+```
+
+**3. Conditional Settings Loading:**
+```javascript
+// Load only specific settings based on user permissions (no auth required by default)
+const allowedKeys = user.permissions.includes('manage_settings')
+    ? ['site_name', 'maintenance_mode', 'max_users']
+    : ['site_name'];
+
+const response = await fetch(`/api/schema-settings?${allowedKeys.map(k => `keys[]=${k}`).join('&')}`);
+
+// Or with authentication if configured
+// const response = await fetch(`/api/schema-settings?${allowedKeys.map(k => `keys[]=${k}`).join('&')}`, {
+//     headers: {
+//         'Authorization': `Bearer ${token}`
+//     }
+// });
+```
+
+### Authentication
+
+By default, routes have no authentication middleware (`null`). To add authentication, configure the middleware:
+
+```php
+// config/schema-settings.php
+'routes' => [
+    'middleware' => env('SCHEMA_SETTINGS_MIDDLEWARE', 'auth:sanctum'),
+],
+```
+
+Or set via environment variable:
+```bash
+# .env
+SCHEMA_SETTINGS_MIDDLEWARE=auth:sanctum
+```
+
+**Note:** The default in the config file is `null` (no middleware). Setting `SCHEMA_SETTINGS_MIDDLEWARE=auth:sanctum` in your `.env` will override this.
+
+You can also use multiple middleware:
+```php
+'routes' => [
+    'middleware' => ['auth:sanctum', 'permission:view_settings'],
+],
+```
+
+### Disabling Routes
+
+To disable API routes entirely:
+
+```bash
+# .env
+SCHEMA_SETTINGS_ROUTES_ENABLED=false
+```
+
+Or in code:
+```php
+config(['schema-settings.routes.enabled' => false]);
+```
+
+### Route Names
+
+Routes are named using the configured prefix:
+- Main route: `schema_settings.index`
+
+You can use these for reverse routing:
+```php
+route('schema_settings.index');
+route('schema_settings.index', ['key' => 'site_name']);
+```
+
+### Performance Considerations
+
+- Single query fetches all requested settings
+- Cache is automatically checked and used
+- Empty keys are filtered before database queries
+- Maximum 50 keys per request to prevent abuse
+
+### Error Handling
+
+The controller automatically handles:
+- `SettingNotFoundException` → 404 response
+- `SchemaSettingException` → 400 response
+- `ValidationException` → 422 response
+- Unexpected exceptions → 500 response (logged)
+
+All errors are logged with context for debugging.
 
 ---
 

@@ -53,4 +53,19 @@ return [
         'boot_validation' => true,    // Validate during registration
         'enhanced_errors' => true,    // Provide detailed error messages with hints
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Route Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure API routes for accessing settings.
+    |
+    */
+    'routes' => [
+        'prefix' => env('SCHEMA_SETTINGS_ROUTE_PREFIX', 'api/schema-settings'),
+        'middleware' => env('SCHEMA_SETTINGS_MIDDLEWARE', null),
+        'name_prefix' => 'schema_settings.',
+        'enabled' => env('SCHEMA_SETTINGS_ROUTES_ENABLED', true),
+    ],
 ];

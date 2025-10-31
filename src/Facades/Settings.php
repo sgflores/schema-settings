@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array<string, mixed> all(Model|null $model = null) Get all settings for a scope
  * @method static bool has(string $key, Model|null $model = null) Check if setting exists in schema
  * @method static array<string, ConfigurableItem>|array<string, array<string, ConfigurableItem>> getSchema(string|null $scopeKey = null) Get schema configuration (array of ConfigurableItem instances)
+ * @method static array<string, array<string, mixed>> getSchemaWithValues(array|string $keys, Model|null $model = null) Get schema configuration with persisted values for form generation
  * @method static void clearCache(string|null $scopeKey = null, int|null $referenceId = null) Clear cached settings
  * 
  * @see \SgFlores\SchemaSetting\Manager\SettingsManager

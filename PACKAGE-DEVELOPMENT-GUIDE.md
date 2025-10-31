@@ -223,8 +223,15 @@ packages/sgflores/schema-settings/
 │   │   └── SettingHistory.php      # Audit trail
 │   ├── Traits/                     # Reusable traits
 │   │   └── HasSettings.php   # For models
+│   ├── Http/                   # HTTP components
+│   │   ├── Controllers/
+│   │   │   └── SettingsController.php  # API controller
+│   │   └── Requests/
+│   │       └── SettingsRequest.php     # Form request validation
 │   ├── helpers.php                 # Global helper functions
 │   └── SchemaSettingServiceProvider.php  # Package entry point
+├── routes/                     # Route definitions
+│   └── api.php                # API routes
 ├── stubs/                          # Publishable files
 │   ├── config/
 │   │   └── schema-settings.php
@@ -661,6 +668,21 @@ public function it_casts_to_url(): void
 ---
 
 ## Common Development Tasks
+
+### API Routes
+
+The package includes API routes for retrieving settings schema with values. See [DOCUMENTATION.md](DOCUMENTATION.md#api-routes) for complete API documentation.
+
+**Key Components:**
+- `src/Http/Controllers/SettingsController.php` - Handles API requests
+- `src/Http/Requests/SettingsRequest.php` - Validates request parameters
+- `routes/api.php` - Route definitions
+
+**Route Configuration:**
+Routes are automatically registered by `SchemaSettingServiceProvider` when enabled in config. Configuration options:
+- Route prefix: `schema-settings.routes.prefix`
+- Middleware: `schema-settings.routes.middleware`
+- Enable/disable: `schema-settings.routes.enabled`
 
 ### Adding a New Artisan Command
 

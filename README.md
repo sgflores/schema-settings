@@ -166,6 +166,10 @@ $settings = Settings::getMultiple(['site_name', 'maintenance_mode']);
 
 // Get all settings
 $all = Settings::all();
+
+// Get schema with values for form generation
+$schemaWithValues = Settings::getSchemaWithValues(['site_name', 'site_description']);
+// Returns array with schema configuration + 'value' property for each setting
 ```
 
 ### Using Helper Functions
@@ -181,6 +185,9 @@ set_setting('site_name', 'My Awesome App');
 if (has_setting('site_name')) {
     // ...
 }
+
+// Get schema with values for form generation
+$formSchema = schema_with_values(['site_name', 'site_description']);
 ```
 
 ## Model-Scoped Settings
@@ -274,6 +281,61 @@ ConfigurableItem::make('setting')
     ->default('hello');
 ```
 
+## API Routes
+
+The package provides API routes for retrieving settings schema with values, perfect for frontend form generation.
+
+### Configuration
+
+Configure API routes in `config/schema-settings.php`:
+
+```php
+'routes' => [
+    'prefix' => env('SCHEMA_SETTINGS_ROUTE_PREFIX', 'api/schema-settings'),
+    'middleware' => env('SCHEMA_SETTINGS_MIDDLEWARE', null),
+    'name_prefix' => 'schema_settings.',
+    'enabled' => env('SCHEMA_SETTINGS_ROUTES_ENABLED', true),
+],
+```
+
+### Endpoints
+
+**Get Settings Schema with Values**
+
+```http
+GET /api/schema-settings?key=site_name
+GET /api/schema-settings?keys[]=site_name&keys[]=maintenance_mode
+GET /api/schema-settings
+```
+
+**Response Example:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "site_name": {
+            "key": "site_name",
+            "type": "string",
+            "default": "Awesome App",
+            "rules": ["required", "min:3", "max:255"],
+            "group": "general",
+            "label": "Site Name",
+            "description": "The name of your application",
+            "encrypted": false,
+            "readonly": false,
+            "enumClass": null,
+            "options": [],
+            "value": "My Current Site Name"
+        }
+    }
+}
+```
+
+### Disabling Routes
+
+Set `SCHEMA_SETTINGS_ROUTES_ENABLED=false` in your `.env` file to disable API routes entirely.
+
 ## Artisan Commands
 
 ```bash
@@ -314,6 +376,13 @@ return [
         'strict_mode' => true,        // Validate during fluent chain
         'boot_validation' => true,    // Validate during registration  
         'enhanced_errors' => true,    // Provide detailed error messages
+    ],
+
+    'routes' => [
+        'prefix' => env('SCHEMA_SETTINGS_ROUTE_PREFIX', 'api/schema-settings'),
+        'middleware' => env('SCHEMA_SETTINGS_MIDDLEWARE', null),
+        'name_prefix' => 'schema_settings.',
+        'enabled' => env('SCHEMA_SETTINGS_ROUTES_ENABLED', true),
     ],
 ];
 ```
