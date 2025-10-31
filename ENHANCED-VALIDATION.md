@@ -87,6 +87,25 @@ ConfigurableItem::make('optional_status')->enum(\App\Enums\StatusEnum::class)->d
 
 **Note:** Null defaults are always allowed for all types, representing optional settings.
 
+### Dynamic Options with `lazyOptions()`
+
+For settings with database-dependent options, use `lazyOptions()` to lazy-load options only when needed:
+
+```php
+ConfigurableItem::make('default_role')
+    ->type(ConfigurableItem::TYPE_STRING)
+    ->default('user')
+    ->lazyOptions(function() {
+        return Role::pluck('name')->toArray();
+    });
+```
+
+**Key Points:**
+- Callback is executed when `getSchemaWithValues()` is called
+- Avoids database queries during schema registration
+- Options are validated to ensure they return array of scalar values
+- See [DOCUMENTATION.md](DOCUMENTATION.md#options-validation) for full details
+
 ### Benefits
 - ✅ **Fail Fast**: Catch errors during definition, not runtime
 - ✅ **Better Developer Experience**: Immediate feedback in IDE

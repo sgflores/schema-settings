@@ -196,7 +196,8 @@ ConfigurableItem::make('key')
     ->description('Helpful text')
     ->encrypted()
     ->readonly()
-    ->options(['a', 'b'])
+    ->options(['a', 'b'])           // Static options
+    ->lazyOptions(fn() => [])       // Dynamic options
     ->enum(EnumClass::class)
 ```
 
@@ -527,6 +528,7 @@ All Laravel validation rules are supported:
 
 ### Options Validation
 
+**Static Options:**
 ```php
 ConfigurableItem::make('theme')
     ->options(['light', 'dark', 'auto']);
@@ -535,6 +537,24 @@ ConfigurableItem::make('theme')
 Settings::set('theme', 'custom'); // ❌ ValidationException
 Settings::set('theme', 'dark'); // ✅ Success
 ```
+
+**Dynamic Options (Lazy-Loaded):**
+```php
+ConfigurableItem::make('default_role')
+    ->lazyOptions(function() {
+        return Role::pluck('name')->toArray();
+    });
+// Options are loaded only when getSchemaWithValues() is called
+// Perfect for database-dependent options
+
+Settings::set('default_role', 'admin'); // ✅ Success if role exists
+```
+
+**Benefits of `lazyOptions()`:**
+- ✅ Lazy-loading: Avoids database queries during schema registration
+- ✅ Dynamic data: Options can depend on current database state
+- ✅ Performance: Only executed when needed (via API/form generation)
+- ✅ Always fresh: Gets latest data on each call
 
 ---
 

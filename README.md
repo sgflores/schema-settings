@@ -16,6 +16,7 @@ Schema Settings provides a **type-safe, validated approach** to managing applica
 - ✅ **Type Safety** - 8 data types with automatic casting
 - ✅ **Enhanced Validation** - Immediate type validation with helpful error messages
 - ✅ **Validation** - Laravel validation rules enforced on all changes
+- ✅ **Dynamic Options** - Lazy-load database-dependent options with callbacks
 - ✅ **Caching** - Automatic caching with smart invalidation
 - ✅ **Encryption** - Built-in encryption for sensitive data
 - ✅ **Audit Trail** - Track all changes with user attribution
@@ -93,6 +94,16 @@ class GlobalSettings implements ConfigurableInterface
                 ->group('general')
                 ->label('Site Description')
                 ->description('A brief description of your site'),
+            
+            // Dynamic options example
+            ConfigurableItem::make('default_role')
+                ->type(ConfigurableItem::TYPE_STRING)
+                ->default('user')
+                ->label('Default Role')
+                ->description('Default role for new users')
+                ->lazyOptions(function() {
+                    return \App\Models\Role::pluck('name')->toArray();
+                }),
         ];
     }
 }
@@ -265,6 +276,25 @@ $user->setSetting('timezone', 'America/New_York');
 | `TYPE_DATETIME` | DateTime | `new DateTime()` |
 | `TYPE_ENUM` | Enum | `Status::Active` |
 
+### Dynamic Options with `lazyOptions()`
+
+For settings with database-dependent options, use `lazyOptions()` to lazy-load options only when needed:
+
+```php
+ConfigurableItem::make('default_role')
+    ->type(ConfigurableItem::TYPE_STRING)
+    ->default('user')
+    ->lazyOptions(function() {
+        return Role::pluck('name')->toArray();
+    });
+```
+
+**Benefits:**
+- ✅ Avoids database queries during schema registration
+- ✅ Options are always fresh when accessed
+- ✅ Perfect for frontend form generation via API
+- ✅ See [DOCUMENTATION.md](DOCUMENTATION.md#options-validation) for more details
+
 ## Enhanced Type Validation
 
 The package includes enhanced validation that catches type mismatches during the fluent chain definition. This provides immediate feedback and prevents runtime errors.
@@ -415,6 +445,7 @@ It offers a unique **schema-driven approach** that provides:
 
 - ✅ **Fluent API** - Easy-to-read schema definitions with method chaining
 - ✅ **Enhanced Validation** - Immediate type validation during schema definition
+- ✅ **Dynamic Options** - Lazy-load database-dependent options via callbacks
 - ✅ **Model Scoping** - Settings can belong to specific models (users, teams, etc.)
 - ✅ **Comprehensive Features** - Validation, caching, encryption, and audit trails out of the box
 - ✅ **Developer Experience** - Helpful error messages and comprehensive documentation
