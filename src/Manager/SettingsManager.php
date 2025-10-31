@@ -470,6 +470,74 @@ class SettingsManager implements SettingsManagerInterface
     }
 
     /**
+     * Get schema configuration with persisted values for form generation.
+     * 
+     * Returns the schema configuration with an added 'value' property containing
+     * the persisted database value (or default if not set). Perfect for generating
+     * frontend forms that need both the field definition and current values.
+     * 
+     * This method leverages the same optimization as all() and getMultiple() by
+     * fetching all settings in a single database query.
+     * 
+     * @param array<int, string>|string $keys Array of setting keys or single key (empty = all keys)
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
+     * @return array<string, array<string, mixed>> Associative array of schema configurations with values
+     * @throws SettingNotFoundException If any key is not found in schema
+     */
+    public function getSchemaWithValues(array|string $keys, ?Model $model = null): array
+    {
+        $scopeKey = $model ? $model::class : 'global';
+        
+        // Validate scope exists
+        if (!isset($this->schema[$scopeKey])) {
+            return [];
+        }
+        
+        // Convert single key to array and filter empty values
+        $keys = is_array($keys) ? $keys : [$keys];
+        $keys = array_filter($keys, fn($key) => !empty($key));
+        
+        // If no keys provided after filtering, get all keys from the scope
+        if (empty($keys)) {
+            $keys = array_keys($this->schema[$scopeKey]);
+        }
+        
+        // Validate all keys exist in schema
+        foreach ($keys as $key) {
+            if (!isset($this->schema[$scopeKey][$key])) {
+                throw new SettingNotFoundException($key, $scopeKey);
+            }
+        }
+        
+        // Fetch all settings from database in one query
+        $dbSettings = Setting::query()
+            ->whereIn('key', $keys)
+            ->when($model, fn($q) => $q->forModel($model), fn($q) => $q->global())
+            ->get()
+            ->keyBy('key');
+        
+        $results = [];
+        
+        // Process each requested key
+        foreach ($keys as $key) {
+            $config = $this->schema[$scopeKey][$key];
+            
+            // Get from database result or use default
+            $setting = $dbSettings->get($key);
+            $value = $setting ? $this->deserializeValue($setting->value, $config) : $config->default;
+            $value = $this->castValue($value, $config);
+            
+            // Convert ConfigurableItem to array and add the value
+            $schemaArray = $config->toArray();
+            $schemaArray['value'] = $value;
+            
+            $results[$key] = $schemaArray;
+        }
+        
+        return $results;
+    }
+
+    /**
      * Clear cached settings.
      * 
      * Can clear cache for:

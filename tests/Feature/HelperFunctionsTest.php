@@ -207,5 +207,82 @@ class HelperFunctionsTest extends TestCase
 
         $this->assertFalse($result); // Should return false, not throw exception
     }
-}
 
+    #[Test]
+    public function schema_with_values_helper_gets_schema_with_values(): void
+    {
+        set_setting('site_name', 'Helper Schema Test');
+        
+        $schema = schema_with_values('site_name');
+
+        $this->assertIsArray($schema);
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertEquals('Helper Schema Test', $schema['site_name']['value']);
+        $this->assertArrayHasKey('key', $schema['site_name']);
+        $this->assertArrayHasKey('type', $schema['site_name']);
+    }
+
+    #[Test]
+    public function schema_with_values_helper_gets_multiple_settings(): void
+    {
+        set_setting('site_name', 'Multi Test');
+        set_setting('maintenance_mode', true);
+        
+        $schema = schema_with_values(['site_name', 'maintenance_mode']);
+
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertArrayHasKey('maintenance_mode', $schema);
+        $this->assertEquals('Multi Test', $schema['site_name']['value']);
+        $this->assertTrue($schema['maintenance_mode']['value']);
+    }
+
+    #[Test]
+    public function schema_with_values_helper_returns_empty_array_on_error(): void
+    {
+        $schema = schema_with_values(['non_existent']);
+
+        $this->assertEquals([], $schema);
+    }
+
+    #[Test]
+    public function schema_with_values_helper_returns_default_when_no_value_exists(): void
+    {
+        $schema = schema_with_values('site_name');
+
+        $this->assertEquals('Test Site', $schema['site_name']['value']);
+        $this->assertEquals('Test Site', $schema['site_name']['default']);
+    }
+
+    #[Test]
+    public function schema_with_values_helper_gets_all_settings_when_empty_array(): void
+    {
+        set_setting('site_name', 'All Helper Test');
+        
+        $schema = schema_with_values([]);
+
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertArrayHasKey('maintenance_mode', $schema);
+        $this->assertEquals('All Helper Test', $schema['site_name']['value']);
+    }
+
+    #[Test]
+    public function schema_with_values_helper_filters_empty_keys(): void
+    {
+        $schema = schema_with_values(['site_name', '', null, 'maintenance_mode']);
+
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertArrayHasKey('maintenance_mode', $schema);
+        $this->assertCount(2, $schema);
+    }
+
+    #[Test]
+    public function schema_with_values_helper_works_with_model(): void
+    {
+        set_setting('theme', 'dark', $this->user);
+        
+        $schema = schema_with_values('theme', $this->user);
+
+        $this->assertArrayHasKey('theme', $schema);
+        $this->assertEquals('dark', $schema['theme']['value']);
+    }
+}

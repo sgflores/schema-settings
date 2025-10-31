@@ -125,6 +125,20 @@ interface SettingsManagerInterface
     public function getSchema(?string $scopeKey = null): array;
 
     /**
+     * Get schema configuration with persisted values for form generation.
+     * 
+     * Returns the schema configuration with an added 'value' property containing
+     * the persisted database value (or default if not set). Perfect for generating
+     * frontend forms that need both the field definition and current values.
+     * 
+     * @param array<int, string>|string $keys Array of setting keys or single key (empty = all keys)
+     * @param Model|null $model Optional Eloquent model instance for model-scoped settings
+     * @return array<string, array<string, mixed>> Associative array of schema configurations with values
+     * @throws SettingNotFoundException If any key is not found in schema
+     */
+    public function getSchemaWithValues(array|string $keys, ?Model $model = null): array;
+
+    /**
      * Clear cached settings.
      * 
      * @param string|null $scopeKey

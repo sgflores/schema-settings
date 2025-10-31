@@ -147,6 +147,103 @@ class SettingsManagerTest extends TestCase
     }
 
     #[Test]
+    public function it_can_get_schema_with_values_for_single_key(): void
+    {
+        $this->manager->set('site_name', 'My Custom Site');
+        
+        $schema = $this->manager->getSchemaWithValues('site_name');
+
+        $this->assertIsArray($schema);
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertEquals('My Custom Site', $schema['site_name']['value']);
+        $this->assertEquals('Test Site', $schema['site_name']['default']);
+        $this->assertArrayHasKey('key', $schema['site_name']);
+        $this->assertArrayHasKey('type', $schema['site_name']);
+        $this->assertArrayHasKey('rules', $schema['site_name']);
+    }
+
+    #[Test]
+    public function it_can_get_schema_with_values_for_multiple_keys(): void
+    {
+        $this->manager->set('site_name', 'Updated Site');
+        $this->manager->set('maintenance_mode', true);
+        
+        $schema = $this->manager->getSchemaWithValues(['site_name', 'maintenance_mode']);
+
+        $this->assertIsArray($schema);
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertArrayHasKey('maintenance_mode', $schema);
+        $this->assertEquals('Updated Site', $schema['site_name']['value']);
+        $this->assertTrue($schema['maintenance_mode']['value']);
+    }
+
+    #[Test]
+    public function it_returns_default_value_when_no_persisted_value_exists(): void
+    {
+        $schema = $this->manager->getSchemaWithValues('site_name');
+
+        $this->assertEquals('Test Site', $schema['site_name']['value']);
+        $this->assertEquals('Test Site', $schema['site_name']['default']);
+    }
+
+    #[Test]
+    public function it_can_get_schema_with_values_for_all_keys_when_empty_array_provided(): void
+    {
+        $this->manager->set('site_name', 'All Settings Test');
+        
+        $schema = $this->manager->getSchemaWithValues([]);
+
+        $this->assertIsArray($schema);
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertArrayHasKey('maintenance_mode', $schema);
+        $this->assertEquals('All Settings Test', $schema['site_name']['value']);
+    }
+
+    #[Test]
+    public function it_filters_empty_keys_from_array(): void
+    {
+        $schema = $this->manager->getSchemaWithValues(['site_name', '', null, 'maintenance_mode']);
+
+        $this->assertArrayHasKey('site_name', $schema);
+        $this->assertArrayHasKey('maintenance_mode', $schema);
+        $this->assertCount(2, $schema);
+    }
+
+    #[Test]
+    public function it_throws_exception_for_invalid_key_in_schema_with_values(): void
+    {
+        $this->expectException(SettingNotFoundException::class);
+
+        $this->manager->getSchemaWithValues(['non_existent_key']);
+    }
+
+    #[Test]
+    public function it_can_get_schema_with_values_for_model_scoped_settings(): void
+    {
+        $user = TestUser::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
+        $this->manager->set('theme', 'dark', $user);
+        
+        $schema = $this->manager->getSchemaWithValues('theme', $user);
+
+        $this->assertIsArray($schema);
+        $this->assertArrayHasKey('theme', $schema);
+        $this->assertEquals('dark', $schema['theme']['value']);
+    }
+
+    #[Test]
+    public function it_works_with_facade_for_schema_with_values(): void
+    {
+        Settings::set('site_name', 'Facade Schema Test');
+        
+        $schema = Settings::getSchemaWithValues('site_name');
+
+        $this->assertEquals('Facade Schema Test', $schema['site_name']['value']);
+    }
+
+    #[Test]
     public function it_works_with_facade(): void
     {
         Settings::set('site_name', 'Facade Test');

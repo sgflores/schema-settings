@@ -140,6 +140,32 @@ $userSettings = all_settings($user);
 
 ---
 
+### `schema_with_values($keys = [], $model = null)`
+
+Get schema configuration with persisted values for form generation.
+
+```php
+// Get schema with values for specific keys
+$formData = schema_with_values(['site_name', 'site_description', 'maintenance_mode']);
+
+// Single key as string
+$single = schema_with_values('site_name');
+
+// Get all settings schema with values
+$allSchema = schema_with_values([]);
+
+// Model-scoped settings
+$userSchema = schema_with_values(['theme', 'timezone'], $user);
+```
+
+**Parameters:**
+- `$keys` (array|string): Array of setting keys or single key (empty = all keys)
+- `$model` (Model|null): Optional Eloquent model instance for scoped settings
+
+**Returns:** array - Schema configuration with 'value' property for each setting
+
+---
+
 ## Usage Examples
 
 ### In API Controllers
@@ -291,7 +317,17 @@ $userSettings = settings(['email_notifications', 'timezone'], $user);
 | `delete_setting('key')` | `Settings::delete('key')` |
 | `settings(['a', 'b'])` | `Settings::getMultiple(['a', 'b'])` |
 | `all_settings()` | `Settings::all()` |
+| `schema_with_values(['a', 'b'])` | `Settings::getSchemaWithValues(['a', 'b'])` |
 
 **Use helpers for:** Simple access, views, quick operations  
 **Use facade for:** Complex operations, dependency injection, service classes
+
+## API Routes
+
+The package also provides API routes for frontend integration. See the main [README.md](README.md#api-routes) or [DOCUMENTATION.md](DOCUMENTATION.md#api-routes) for detailed API documentation.
+
+**Quick Reference:**
+- **Endpoint**: `GET /api/schema-settings`
+- **Parameters**: `?key=setting_name` or `?keys[]=name1&keys[]=name2`
+- **Returns**: Schema configuration with current values for form generation
 

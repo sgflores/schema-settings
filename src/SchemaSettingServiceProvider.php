@@ -37,6 +37,25 @@ class SchemaSettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {   
+        $this->publishAssets();
+        $this->loadRoutes();
+        
+        // Register commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ListCommand::class,
+                GetCommand::class,
+                SetCommand::class,
+                ClearCacheCommand::class,
+            ]);
+        }
+    }
+
+    /**
+     * Publish package assets.
+     */
+    protected function publishAssets(): void
+    {
         // Publish configuration
         $this->publishes([
             __DIR__.'/../stubs/config/schema-settings.php' => config_path('schema-settings.php'),
@@ -52,15 +71,15 @@ class SchemaSettingServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/database/2025_10_13_000000_create_schema_settings_table.php' => database_path('migrations/'.date('Y_m_d_His').'_create_schema_settings_table.php'),
             __DIR__.'/../stubs/database/2025_10_13_000001_create_schema_settings_history_table.php' => database_path('migrations/'.date('Y_m_d_His', strtotime('+1 second')).'_create_schema_settings_history_table.php'),
         ], 'schema-settings-migrations');
+    }
 
-        // Register commands
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                ListCommand::class,
-                GetCommand::class,
-                SetCommand::class,
-                ClearCacheCommand::class,
-            ]);
+    /**
+     * Load package routes.
+     */
+    protected function loadRoutes(): void
+    {
+        if (config('schema-settings.routes.enabled', true)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         }
     }
 
