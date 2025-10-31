@@ -13,7 +13,7 @@ Schema Settings provides a **type-safe, validated approach** to managing applica
 ### Key Features
 
 - ✅ **Schema-Driven** - Define settings with types, defaults, and validation rules
-- ✅ **Type Safety** - 8 data types with automatic casting
+- ✅ **Type Safety** - 11 data types with automatic casting (string, long_text, integer, boolean, float, array, json, date, time, datetime, enum)
 - ✅ **Enhanced Validation** - Immediate type validation with helpful error messages
 - ✅ **Validation** - Laravel validation rules enforced on all changes
 - ✅ **Dynamic Options** - Lazy-load database-dependent options with callbacks
@@ -268,12 +268,15 @@ $user->setSetting('timezone', 'America/New_York');
 | Type | PHP Type | Example |
 |------|----------|---------|
 | `TYPE_STRING` | string | `'Hello World'` |
+| `TYPE_LONG_TEXT` | string | `'Long description text...'` (Frontend: textarea) |
 | `TYPE_INTEGER` | int | `42` |
 | `TYPE_BOOLEAN` | bool | `true` |
 | `TYPE_FLOAT` | float | `3.14` |
 | `TYPE_ARRAY` | array | `['a', 'b']` |
 | `TYPE_JSON` | array | `['key' => 'value']` |
-| `TYPE_DATETIME` | DateTime | `new DateTime()` |
+| `TYPE_DATE` | DateTime | `new DateTime()` (formatted as `Y-m-d`) |
+| `TYPE_TIME` | DateTime | `new DateTime()` (formatted as `H:i:s`) |
+| `TYPE_DATETIME` | DateTime | `new DateTime()` (formatted as `Y-m-d H:i:s`) |
 | `TYPE_ENUM` | Enum | `Status::Active` |
 
 ### Dynamic Options with `lazyOptions()`

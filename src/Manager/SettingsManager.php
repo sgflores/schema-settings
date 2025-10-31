@@ -28,7 +28,7 @@ use SgFlores\SchemaSetting\Exceptions\InvalidConfigurableException;
  * 
  * Key Features:
  * - Schema registration and validation
- * - Type-safe value casting (8 data types)
+ * - Type-safe value casting (11 data types)
  * - Automatic caching with smart invalidation
  * - Laravel validation integration
  * - Encryption support for sensitive data
@@ -529,7 +529,9 @@ class SettingsManager implements SettingsManagerInterface
             
             // Convert ConfigurableItem to array and add the value
             $schemaArray = $config->toArray();
-            $schemaArray['value'] = $value;
+            
+            // Format value for API response (convert DateTime objects to strings)
+            $schemaArray['value'] = $this->formatValueForOutput($value, $config);
             
             $results[$key] = $schemaArray;
         }
@@ -708,7 +710,9 @@ class SettingsManager implements SettingsManagerInterface
      * - boolean → bool
      * - float → float
      * - array/json → array
-     * - datetime → DateTime object
+     * - date → DateTime object (formatted as Y-m-d)
+     * - time → DateTime object (formatted as H:i:s)
+     * - datetime → DateTime object (formatted as Y-m-d H:i:s)
      * - enum → Enum instance
      * 
      * @param mixed $value The raw value to cast
@@ -726,6 +730,8 @@ class SettingsManager implements SettingsManagerInterface
             ConfigurableItem::TYPE_INTEGER => (int) $value,
             ConfigurableItem::TYPE_FLOAT => (float) $value,
             ConfigurableItem::TYPE_ARRAY, ConfigurableItem::TYPE_JSON => is_array($value) ? $value : json_decode($value, true) ?? [],
+            ConfigurableItem::TYPE_DATE => $this->castToDate($value, $config),
+            ConfigurableItem::TYPE_TIME => $this->castToTime($value, $config),
             ConfigurableItem::TYPE_DATETIME => $this->castToDateTime($value, $config),
             ConfigurableItem::TYPE_ENUM => $this->castToEnum($value, $config),
             default => (string) $value,
@@ -735,8 +741,9 @@ class SettingsManager implements SettingsManagerInterface
     /**
      * Cast a value to DateTime object with error handling.
      * 
-     * Attempts to create a DateTime object from the value. If parsing fails,
-     * returns the default value (or null) instead of throwing an exception.
+     * Shared method for casting date, time, and datetime values to DateTime objects.
+     * All three types return DateTime objects but are formatted differently during serialization.
+     * Returns the default value if parsing fails.
      * 
      * @param mixed $value The value to cast to DateTime
      * @param ConfigurableItem $config The schema configuration
@@ -765,6 +772,36 @@ class SettingsManager implements SettingsManagerInterface
             
             return $default;
         }
+    }
+
+    /**
+     * Cast a value to Date (date-only) with error handling.
+     * 
+     * Delegate to castToDateTime for shared logic.
+     * Date values are formatted as 'Y-m-d' during serialization.
+     * 
+     * @param mixed $value The value to cast to date
+     * @param ConfigurableItem $config The schema configuration
+     * @return \DateTimeInterface|null The DateTime object, default, or null
+     */
+    protected function castToDate(mixed $value, ConfigurableItem $config): ?\DateTimeInterface
+    {
+        return $this->castToDateTime($value, $config);
+    }
+
+    /**
+     * Cast a value to Time (time-only) with error handling.
+     * 
+     * Delegate to castToDateTime for shared logic.
+     * Time values are formatted as 'H:i:s' during serialization.
+     * 
+     * @param mixed $value The value to cast to time
+     * @param ConfigurableItem $config The schema configuration
+     * @return \DateTimeInterface|null The DateTime object, default, or null
+     */
+    protected function castToTime(mixed $value, ConfigurableItem $config): ?\DateTimeInterface
+    {
+        return $this->castToDateTime($value, $config);
     }
 
     /**
@@ -799,7 +836,7 @@ class SettingsManager implements SettingsManagerInterface
      * 
      * Performs the following transformations:
      * 1. Convert enum objects to their scalar value
-     * 2. Convert DateTime objects to string format
+     * 2. Convert DateTime objects to string format (formatted based on type)
      * 3. JSON encode the value
      * 4. Encrypt if setting is marked as encrypted
      * 
@@ -814,9 +851,14 @@ class SettingsManager implements SettingsManagerInterface
             $value = $value->value;
         }
 
-        // Convert datetime to string
+        // Convert datetime objects to string based on type
         if ($value instanceof \DateTimeInterface) {
-            $value = $value->format('Y-m-d H:i:s');
+            $value = match ($config->type) {
+                ConfigurableItem::TYPE_DATE => $value->format('Y-m-d'),
+                ConfigurableItem::TYPE_TIME => $value->format('H:i:s'),
+                ConfigurableItem::TYPE_DATETIME => $value->format('Y-m-d H:i:s'),
+                default => $value->format('Y-m-d H:i:s'),
+            };
         }
 
         // JSON encode
@@ -902,6 +944,44 @@ class SettingsManager implements SettingsManagerInterface
             'action' => $action,
             'created_at' => now(),
         ]);
+    }
+
+    /**
+     * Format a value for API output (JSON serialization).
+     * 
+     * Converts complex PHP objects to JSON-friendly formats:
+     * - DateTime objects → formatted strings based on type:
+     *   - date → 'Y-m-d' format
+     *   - time → 'H:i:s' format
+     *   - datetime → 'Y-m-d H:i:s' format
+     * - Enum instances → string values
+     * - Other types → returned as-is
+     * 
+     * This ensures frontend forms receive properly formatted values without
+     * complex PHP objects that don't serialize well to JSON.
+     * 
+     * @param mixed $value The value to format
+     * @param ConfigurableItem $config The schema configuration
+     * @return mixed The formatted value suitable for JSON encoding
+     */
+    protected function formatValueForOutput(mixed $value, ConfigurableItem $config): mixed
+    {
+        // Convert DateTime objects to proper format based on type
+        if ($value instanceof \DateTimeInterface) {
+            return match ($config->type) {
+                ConfigurableItem::TYPE_DATE => $value->format('Y-m-d'),
+                ConfigurableItem::TYPE_TIME => $value->format('H:i:s'),
+                ConfigurableItem::TYPE_DATETIME => $value->format('Y-m-d H:i:s'),
+                default => $value->format('Y-m-d H:i:s'),
+            };
+        }
+        
+        // Convert Enum instances to their string/int value
+        if ($config->type === ConfigurableItem::TYPE_ENUM && is_object($value) && method_exists($value, 'value')) {
+            return $value->value;
+        }
+        
+        return $value;
     }
 
     /**
