@@ -18,7 +18,7 @@ use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
  * - Laravel validation rules
  * - Encryption support
  * - Readonly enforcement
- * - Option constraints
+ * - Option constraints (static or dynamic via lazyOptions)
  * - Grouping and labeling for UI organization
  * 
  * @package SgFlores\SchemaSetting\Items
@@ -79,6 +79,9 @@ class ConfigurableItem
     
     /** @var array Allowed values for this setting (auto-generates validation) */
     public array $options = [];
+
+    /** @var mixed Callback to lazy-load options dynamically */
+    public mixed $lazyOptionsCallback = null;
 
     /**
      * Create a new ConfigurableItem instance with the given key.
@@ -299,6 +302,33 @@ class ConfigurableItem
     }
 
     /**
+     * Set a callback to lazy-load options dynamically.
+     * 
+     * This is useful when options are dependent on database queries or other
+     * dynamic data that you don't want to load during schema registration.
+     * The callback is executed only when getSchemaWithValues() is called.
+     * 
+     * The callback should return an array of scalar values (string, int, float, bool).
+     * Options returned by the callback will be automatically validated.
+     * 
+     * Example:
+     * ```php
+     * ->lazyOptions(function() {
+     *     return Role::pluck('name')->toArray();
+     * })
+     * ```
+     * 
+     * @param callable $callback A callable that returns array<int, scalar>
+     * @return static
+     * @throws InvalidSchemaException If the callback is not callable
+     */
+    public function lazyOptions(callable $callback): static
+    {
+        $this->lazyOptionsCallback = $callback;
+        return $this;
+    }
+
+    /**
      * Validate this schema item definition.
      * 
      * Checks that:
@@ -391,10 +421,37 @@ class ConfigurableItem
      * Includes all properties: key, type, default, rules, group, label, description,
      * encrypted, readonly, enumClass, and options.
      * 
+     * If a lazyOptionsCallback is set, it will be executed to lazy-load the options.
+     * 
      * @return array<string, mixed> Associative array of all properties
+     * @throws InvalidSchemaException If lazyOptions returns invalid data
      */
     public function toArray(): array
     {
+        // Execute callback if set to lazy-load options
+        $options = $this->options;
+        if ($this->lazyOptionsCallback !== null) {
+            $options = call_user_func($this->lazyOptionsCallback);
+            
+            // Validate lazy options returned an array
+            if (!is_array($options)) {
+                throw new InvalidSchemaException(
+                    "Lazy options for setting '{$this->key}' must return an array.",
+                    $this->key
+                );
+            }
+            
+            // Validate all options are scalar values
+            foreach ($options as $option) {
+                if (!is_scalar($option)) {
+                    throw new InvalidSchemaException(
+                        "All lazy options must be scalar values for setting '{$this->key}'.",
+                        $this->key
+                    );
+                }
+            }
+        }
+
         return [
             'key' => $this->key,
             'type' => $this->type,
@@ -406,7 +463,7 @@ class ConfigurableItem
             'encrypted' => $this->encrypted,
             'readonly' => $this->readonly,
             'enumClass' => $this->enumClass,
-            'options' => $this->options,
+            'options' => $options,
         ];
     }
 }

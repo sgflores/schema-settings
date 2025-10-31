@@ -298,4 +298,137 @@ class ConfigurableItemTest extends TestCase
 
         $this->assertNull($item->default);
     }
+
+    #[Test]
+    public function it_can_set_lazy_options(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return ['dynamic1', 'dynamic2', 'dynamic3'];
+            });
+
+        $this->assertNotNull($item->lazyOptionsCallback);
+    }
+
+    #[Test]
+    public function it_executes_lazy_options_during_to_array(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return ['option1', 'option2'];
+            });
+
+        $array = $item->toArray();
+
+        $this->assertEquals(['option1', 'option2'], $array['options']);
+    }
+
+    #[Test]
+    public function it_executes_lazy_options_each_time_to_array_is_called(): void
+    {
+        $callCount = 0;
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() use (&$callCount) {
+                $callCount++;
+                return ['option' . $callCount];
+            });
+
+        $item->toArray();
+        $item->toArray();
+        $item->toArray();
+
+        $this->assertEquals(3, $callCount);
+    }
+
+    #[Test]
+    public function it_uses_static_options_when_lazy_options_not_set(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->options(['static1', 'static2']);
+
+        $array = $item->toArray();
+
+        $this->assertEquals(['static1', 'static2'], $array['options']);
+    }
+
+    #[Test]
+    public function it_prioritizes_lazy_options_over_static_options(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->options(['static1', 'static2'])
+            ->lazyOptions(function() {
+                return ['lazy1', 'lazy2'];
+            });
+
+        $array = $item->toArray();
+
+        $this->assertEquals(['lazy1', 'lazy2'], $array['options']);
+    }
+
+    #[Test]
+    public function it_validates_lazy_options_returns_array(): void
+    {
+        $this->expectException(InvalidSchemaException::class);
+        $this->expectExceptionMessage("Lazy options for setting 'test' must return an array");
+
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return 'not an array';
+            });
+
+        $item->toArray();
+    }
+
+    #[Test]
+    public function it_validates_lazy_options_returns_scalar_values(): void
+    {
+        $this->expectException(InvalidSchemaException::class);
+        $this->expectExceptionMessage("All lazy options must be scalar values for setting 'test'");
+
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return [['not', 'scalar']];
+            });
+
+        $item->toArray();
+    }
+
+    #[Test]
+    public function it_allows_empty_lazy_options_result(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return [];
+            });
+
+        $array = $item->toArray();
+
+        $this->assertEquals([], $array['options']);
+    }
+
+    #[Test]
+    public function it_supports_lazy_options_with_integer_options(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return [1, 2, 3];
+            });
+
+        $array = $item->toArray();
+
+        $this->assertEquals([1, 2, 3], $array['options']);
+    }
+
+    #[Test]
+    public function it_supports_lazy_options_with_mixed_scalar_options(): void
+    {
+        $item = ConfigurableItem::make('test')
+            ->lazyOptions(function() {
+                return [1, 'two', 3.0, true];
+            });
+
+        $array = $item->toArray();
+
+        $this->assertEquals([1, 'two', 3.0, true], $array['options']);
+    }
 }

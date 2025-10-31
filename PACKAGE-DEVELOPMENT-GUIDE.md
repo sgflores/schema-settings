@@ -436,7 +436,26 @@ public function validate(): void
         $this->validateDefaultType();
     }
 }
+
+public function toArray(): array
+{
+    // Execute callback if set to lazy-load options
+    $options = $this->options;
+    if ($this->lazyOptionsCallback !== null) {
+        $options = call_user_func($this->lazyOptionsCallback);
+        // ... validation ...
+    }
+    
+    return [
+        'key' => $this->key,
+        'type' => $this->type,
+        // ... other properties ...
+        'options' => $options,
+    ];
+}
 ```
+
+**Dynamic Options**: The `lazyOptions()` method allows lazy-loading of options, perfect for database-dependent values. See [DOCUMENTATION.md](DOCUMENTATION.md#options-validation) for details.
 
 ---
 
