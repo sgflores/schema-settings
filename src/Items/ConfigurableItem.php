@@ -14,7 +14,7 @@ use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
  * This class uses a fluent interface pattern for easy schema definition.
  * 
  * Supported Features:
- * - 8 data types (string, integer, boolean, float, array, json, datetime, enum)
+ * - 11 data types (string, long_text, integer, boolean, float, array, json, date, time, datetime, enum)
  * - Laravel validation rules
  * - Encryption support
  * - Readonly enforcement
@@ -28,21 +28,27 @@ class ConfigurableItem
 {
     // Type Constants
     public const TYPE_STRING = 'string';
+    public const TYPE_LONG_TEXT = 'long_text';
     public const TYPE_INTEGER = 'integer';
     public const TYPE_BOOLEAN = 'boolean';
     public const TYPE_FLOAT = 'float';
     public const TYPE_ARRAY = 'array';
     public const TYPE_JSON = 'json';
+    public const TYPE_DATE = 'date';
+    public const TYPE_TIME = 'time';
     public const TYPE_DATETIME = 'datetime';
     public const TYPE_ENUM = 'enum';
 
     public const ALLOWED_TYPES = [
         self::TYPE_STRING,
+        self::TYPE_LONG_TEXT,
         self::TYPE_INTEGER,
         self::TYPE_BOOLEAN,
         self::TYPE_FLOAT,
         self::TYPE_ARRAY,
         self::TYPE_JSON,
+        self::TYPE_DATE,
+        self::TYPE_TIME,
         self::TYPE_DATETIME,
         self::TYPE_ENUM,
     ];
@@ -383,11 +389,13 @@ class ConfigurableItem
         }
 
         $valid = match ($this->type) {
-            self::TYPE_STRING => is_string($this->default),
+            self::TYPE_STRING, self::TYPE_LONG_TEXT => is_string($this->default),
             self::TYPE_INTEGER => is_int($this->default),
             self::TYPE_BOOLEAN => is_bool($this->default),
             self::TYPE_FLOAT => is_float($this->default) || is_int($this->default),
             self::TYPE_ARRAY, self::TYPE_JSON => is_array($this->default),
+            self::TYPE_DATE => is_string($this->default) || $this->default instanceof \DateTimeInterface,
+            self::TYPE_TIME => is_string($this->default) || $this->default instanceof \DateTimeInterface,
             self::TYPE_DATETIME => is_string($this->default) || $this->default instanceof \DateTimeInterface,
             self::TYPE_ENUM => $this->enumClass && $this->default instanceof $this->enumClass,
             default => true,
@@ -402,6 +410,8 @@ class ConfigurableItem
                 self::TYPE_BOOLEAN => "Use ->type(ConfigurableItem::TYPE_BOOLEAN) for true/false values or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
                 self::TYPE_FLOAT => "Use ->type(ConfigurableItem::TYPE_FLOAT) for decimal numbers or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
                 self::TYPE_ARRAY, self::TYPE_JSON => "Use ->type(ConfigurableItem::TYPE_ARRAY) for array defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_DATE => "Use ->type(ConfigurableItem::TYPE_DATE) for date defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
+                self::TYPE_TIME => "Use ->type(ConfigurableItem::TYPE_TIME) for time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
                 self::TYPE_DATETIME => "Use ->type(ConfigurableItem::TYPE_DATETIME) for date/time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
                 self::TYPE_ENUM => "Use ->enum(YourEnumClass::class) for enum defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
                 default => "Ensure the default value type matches the declared type.",

@@ -203,12 +203,15 @@ ConfigurableItem::make('key')
 
 **Available Types**:
 - `TYPE_STRING`: String values
+- `TYPE_LONG_TEXT`: Long string values (Frontend: textarea, same as string internally)
 - `TYPE_INTEGER`: Integer numbers
 - `TYPE_BOOLEAN`: True/false
 - `TYPE_FLOAT`: Floating point numbers
 - `TYPE_ARRAY`: Simple arrays
 - `TYPE_JSON`: Associative arrays
-- `TYPE_DATETIME`: DateTime objects
+- `TYPE_DATE`: Date-only values (formatted as `Y-m-d`)
+- `TYPE_TIME`: Time-only values (formatted as `H:i:s`)
+- `TYPE_DATETIME`: Date and time values (formatted as `Y-m-d H:i:s`)
 - `TYPE_ENUM`: PHP 8.1+ Enums
 
 ---
@@ -466,6 +469,11 @@ ConfigurableItem::make('name')->type(TYPE_STRING);
 // Stored: "Hello"
 // Retrieved: (string) "Hello"
 
+// Long Text (Frontend: textarea, same as string internally)
+ConfigurableItem::make('description')->type(TYPE_LONG_TEXT);
+// Stored: "Long description text..."
+// Retrieved: (string) "Long description text..."
+
 // Integer
 ConfigurableItem::make('count')->type(TYPE_INTEGER);
 // Stored: "42"
@@ -481,8 +489,18 @@ ConfigurableItem::make('items')->type(TYPE_ARRAY);
 // Stored: "[\"a\",\"b\"]"
 // Retrieved: (array) ["a", "b"]
 
+// Date (date-only)
+ConfigurableItem::make('birth_date')->type(TYPE_DATE);
+// Stored: "2024-01-15"
+// Retrieved: (DateTime) DateTime object
+
+// Time (time-only)
+ConfigurableItem::make('opening_time')->type(TYPE_TIME);
+// Stored: "09:00:00"
+// Retrieved: (DateTime) DateTime object
+
 // DateTime
-ConfigurableItem::make('date')->type(TYPE_DATETIME);
+ConfigurableItem::make('created_at')->type(TYPE_DATETIME);
 // Stored: "2024-01-15 10:30:00"
 // Retrieved: (DateTime) DateTime object
 

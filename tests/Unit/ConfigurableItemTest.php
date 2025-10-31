@@ -32,11 +32,14 @@ class ConfigurableItemTest extends TestCase
     {
         $types = [
             ConfigurableItem::TYPE_STRING,
+            ConfigurableItem::TYPE_LONG_TEXT,
             ConfigurableItem::TYPE_INTEGER,
             ConfigurableItem::TYPE_BOOLEAN,
             ConfigurableItem::TYPE_FLOAT,
             ConfigurableItem::TYPE_ARRAY,
             ConfigurableItem::TYPE_JSON,
+            ConfigurableItem::TYPE_DATE,
+            ConfigurableItem::TYPE_TIME,
             ConfigurableItem::TYPE_DATETIME,
             ConfigurableItem::TYPE_ENUM,
         ];

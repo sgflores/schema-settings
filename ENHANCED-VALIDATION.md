@@ -75,7 +75,9 @@ ConfigurableItem::make('optional_price')->type(TYPE_FLOAT)->default(null); // �
 ConfigurableItem::make('config')->type(TYPE_ARRAY)->default(['key' => 'value']);
 ConfigurableItem::make('optional_config')->type(TYPE_ARRAY)->default(null); // ✅ Null allowed
 
-// DateTime types (accepts strings or DateTime objects)
+// Date, Time, and DateTime types (accepts strings or DateTime objects)
+ConfigurableItem::make('birth_date')->type(TYPE_DATE)->default('2023-01-01');
+ConfigurableItem::make('opening_time')->type(TYPE_TIME)->default('09:00:00');
 ConfigurableItem::make('created_at')->type(TYPE_DATETIME)->default('2023-01-01 12:00:00');
 ConfigurableItem::make('created_at')->type(TYPE_DATETIME)->default(new DateTime());
 ConfigurableItem::make('optional_date')->type(TYPE_DATETIME)->default(null); // ✅ Null allowed
