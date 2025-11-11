@@ -23,7 +23,7 @@ class GlobalSettings implements ConfigurableInterface
                 ->label('Site Name')
                 ->description('The name of your application')
                 ->rules(['required', 'min:3', 'max:255']),
-            
+
             ConfigurableItem::make('site_description')
                 ->type(ConfigurableItem::TYPE_STRING)
                 ->default('Welcome to our application')

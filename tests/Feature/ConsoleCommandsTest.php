@@ -4,9 +4,9 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class ConsoleCommandsTest extends TestCase
 {
@@ -62,7 +62,7 @@ class ConsoleCommandsTest extends TestCase
 
         $this->artisan('schema-settings:get', [
             'key' => 'site_name',
-            '--json' => true
+            '--json' => true,
         ])->assertExitCode(0);
     }
 
@@ -78,9 +78,9 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'site_name',
-            'value' => 'CLI Updated Site'
+            'value' => 'CLI Updated Site',
         ])->assertExitCode(0)
-          ->expectsOutput("Setting 'site_name' has been updated successfully.");
+            ->expectsOutput("Setting 'site_name' has been updated successfully.");
 
         $this->assertEquals('CLI Updated Site', $this->manager->get('site_name'));
     }
@@ -90,7 +90,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'maintenance_mode',
-            'value' => 'true'
+            'value' => 'true',
         ])->assertExitCode(0);
 
         $this->assertTrue($this->manager->get('maintenance_mode'));
@@ -101,7 +101,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'maintenance_mode',
-            'value' => 'false'
+            'value' => 'false',
         ])->assertExitCode(0);
 
         $this->assertFalse($this->manager->get('maintenance_mode'));
@@ -112,7 +112,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'max_users',
-            'value' => '500'
+            'value' => '500',
         ])->assertExitCode(0);
 
         $this->assertEquals(500, $this->manager->get('max_users'));
@@ -123,7 +123,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'tax_rate',
-            'value' => '0.25'
+            'value' => '0.25',
         ])->assertExitCode(0);
 
         $this->assertEquals(0.25, $this->manager->get('tax_rate'));
@@ -134,7 +134,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'features',
-            'value' => 'null'
+            'value' => 'null',
         ])->assertExitCode(0);
     }
 
@@ -144,7 +144,7 @@ class ConsoleCommandsTest extends TestCase
         $this->artisan('schema-settings:set', [
             'key' => 'metadata',
             'value' => '{"version":"2.0.0"}',
-            '--json' => true
+            '--json' => true,
         ])->assertExitCode(0);
 
         $metadata = $this->manager->get('metadata');
@@ -157,7 +157,7 @@ class ConsoleCommandsTest extends TestCase
         $result = $this->artisan('schema-settings:set', [
             'key' => 'metadata',
             'value' => 'invalid-json',
-            '--json' => true
+            '--json' => true,
         ]);
 
         $result->assertExitCode(1);
@@ -168,7 +168,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'non_existent',
-            'value' => 'test'
+            'value' => 'test',
         ])->assertExitCode(1);
     }
 
@@ -250,7 +250,7 @@ class ConsoleCommandsTest extends TestCase
 
         $output = $this->artisan('schema-settings:get', [
             'key' => 'site_name',
-            '--json' => true
+            '--json' => true,
         ]);
 
         $output->assertExitCode(0);
@@ -282,7 +282,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'max_users',
-            'value' => '1000'
+            'value' => '1000',
         ])->assertExitCode(0);
 
         $this->assertIsInt($this->manager->get('max_users'));
@@ -294,7 +294,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'tax_rate',
-            'value' => '0.35'
+            'value' => '0.35',
         ])->assertExitCode(0);
 
         $this->assertIsFloat($this->manager->get('tax_rate'));
@@ -307,7 +307,7 @@ class ConsoleCommandsTest extends TestCase
         $this->artisan('schema-settings:set', [
             'key' => 'allowed_ips',
             'value' => '["192.168.1.1", "10.0.0.1"]',
-            '--json' => true
+            '--json' => true,
         ])->assertExitCode(0);
 
         $value = $this->manager->get('allowed_ips');
@@ -323,7 +323,7 @@ class ConsoleCommandsTest extends TestCase
         $this->artisan('schema-settings:set', [
             'key' => 'metadata',
             'value' => $json,
-            '--json' => true
+            '--json' => true,
         ])->assertExitCode(0);
 
         $value = $this->manager->get('metadata');
@@ -337,7 +337,7 @@ class ConsoleCommandsTest extends TestCase
         // Try to set value exceeding max
         $this->artisan('schema-settings:set', [
             'key' => 'max_users',
-            'value' => '99999'
+            'value' => '99999',
         ])->assertExitCode(1);
 
         // Value should not be saved
@@ -349,9 +349,9 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'installation_date',
-            'value' => '2024-10-14'
+            'value' => '2024-10-14',
         ])->assertExitCode(1)
-          ->expectsOutputToContain('Error:');
+            ->expectsOutputToContain('Error:');
     }
 
     #[Test]
@@ -359,14 +359,14 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'maintenance_mode',
-            'value' => 'TRUE'
+            'value' => 'TRUE',
         ])->assertExitCode(0);
 
         $this->assertTrue($this->manager->get('maintenance_mode'));
 
         $this->artisan('schema-settings:set', [
             'key' => 'maintenance_mode',
-            'value' => 'FALSE'
+            'value' => 'FALSE',
         ])->assertExitCode(0);
 
         $this->assertFalse($this->manager->get('maintenance_mode'));
@@ -378,7 +378,7 @@ class ConsoleCommandsTest extends TestCase
         // Note: site_name has 'required' rule, so empty string should fail
         $this->artisan('schema-settings:set', [
             'key' => 'site_name',
-            'value' => ''
+            'value' => '',
         ])->assertExitCode(1); // Should fail validation
     }
 
@@ -387,7 +387,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:set', [
             'key' => 'site_name',
-            'value' => 'Site with "quotes" and \'apostrophes\''
+            'value' => 'Site with "quotes" and \'apostrophes\'',
         ])->assertExitCode(0);
 
         $value = $this->manager->get('site_name');
@@ -401,7 +401,7 @@ class ConsoleCommandsTest extends TestCase
     {
         $this->artisan('schema-settings:clear-cache')->assertExitCode(0);
         $this->artisan('schema-settings:clear-cache')->assertExitCode(0);
-        
+
         // Should not fail on subsequent clears
         $this->assertTrue(true);
     }
@@ -420,7 +420,7 @@ class ConsoleCommandsTest extends TestCase
     public function commands_work_with_no_settings_registered(): void
     {
         // Create a fresh manager without registrations
-        $freshManager = new SettingsManager();
+        $freshManager = new SettingsManager;
         $this->app->instance('schema-settings', $freshManager);
 
         $this->artisan('schema-settings:list', ['scope' => 'global'])
@@ -435,7 +435,7 @@ class ConsoleCommandsTest extends TestCase
 
         $this->artisan('schema-settings:get', [
             'key' => 'site_name',
-            '--scope' => 'global'
+            '--scope' => 'global',
         ])->assertExitCode(0);
     }
 
@@ -445,7 +445,7 @@ class ConsoleCommandsTest extends TestCase
         $this->artisan('schema-settings:set', [
             'key' => 'site_name',
             'value' => 'Test',
-            '--scope' => 'global'
+            '--scope' => 'global',
         ])->assertExitCode(0);
     }
 
@@ -463,5 +463,3 @@ class ConsoleCommandsTest extends TestCase
             ->assertExitCode(0);
     }
 }
-
-

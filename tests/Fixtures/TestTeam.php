@@ -13,4 +13,3 @@ class TestTeam extends Model
 
     protected $fillable = ['name'];
 }
-

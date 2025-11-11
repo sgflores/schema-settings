@@ -9,10 +9,10 @@ use Illuminate\Support\Carbon;
 
 /**
  * SettingHistory Model
- * 
+ *
  * Eloquent model for the schema_settings_history audit trail table.
  * Records all changes to settings including who changed what and when.
- * 
+ *
  * Database Structure:
  * - id: Primary key
  * - key: Setting identifier
@@ -24,9 +24,8 @@ use Illuminate\Support\Carbon;
  * - user_id: User polymorphic ID
  * - action: 'created', 'updated', or 'deleted'
  * - created_at: When the change occurred
- * 
- * @package SgFlores\SchemaSetting\Models
- * 
+ *
+ *
  * @property int $id
  * @property string $key
  * @property string|null $old_value
@@ -63,17 +62,15 @@ class SettingHistory extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        
+
         // Allow dynamic table name from config
         $this->table = config('schema-settings.audit.table_name', 'schema_settings_history');
     }
 
     /**
      * Get the reference model this history entry relates to.
-     * 
+     *
      * Returns the model instance this setting was scoped to at the time of change.
-     * 
-     * @return MorphTo
      */
     public function reference(): MorphTo
     {
@@ -82,11 +79,9 @@ class SettingHistory extends Model
 
     /**
      * Get the user who made this change.
-     * 
+     *
      * Returns the authenticated user instance who triggered this change.
      * Null if change was made programmatically without authentication.
-     * 
-     * @return MorphTo
      */
     public function user(): MorphTo
     {
@@ -95,12 +90,10 @@ class SettingHistory extends Model
 
     /**
      * Query scope to filter by setting key.
-     * 
+     *
      * Useful for retrieving the complete change history of a specific setting.
-     * 
-     * @param Builder $query
-     * @param string $key The setting key
-     * @return Builder
+     *
+     * @param  string  $key  The setting key
      */
     public function scopeKey(Builder $query, string $key): Builder
     {
@@ -109,16 +102,13 @@ class SettingHistory extends Model
 
     /**
      * Query scope to filter by action type.
-     * 
+     *
      * Actions are: 'created', 'updated', or 'deleted'
-     * 
-     * @param Builder $query
-     * @param string $action The action type to filter by
-     * @return Builder
+     *
+     * @param  string  $action  The action type to filter by
      */
     public function scopeAction(Builder $query, string $action): Builder
     {
         return $query->where('action', $action);
     }
 }
-

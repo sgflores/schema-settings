@@ -6,13 +6,13 @@ use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
 
 /**
  * ConfigurableItem
- * 
+ *
  * A fluent builder class for defining individual settings in a schema.
  * Each ConfigurableItem represents one setting with its type, validation rules,
  * default value, and metadata (label, description, group, etc.).
- * 
+ *
  * This class uses a fluent interface pattern for easy schema definition.
- * 
+ *
  * Supported Features:
  * - 11 data types (string, long_text, integer, boolean, float, array, json, date, time, datetime, enum)
  * - Laravel validation rules
@@ -20,23 +20,30 @@ use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
  * - Readonly enforcement
  * - Option constraints (static or dynamic via lazyOptions)
  * - Grouping and labeling for UI organization
- * 
- * @package SgFlores\SchemaSetting\Items
- * 
  */
 class ConfigurableItem
 {
     // Type Constants
     public const TYPE_STRING = 'string';
+
     public const TYPE_LONG_TEXT = 'long_text';
+
     public const TYPE_INTEGER = 'integer';
+
     public const TYPE_BOOLEAN = 'boolean';
+
     public const TYPE_FLOAT = 'float';
+
     public const TYPE_ARRAY = 'array';
+
     public const TYPE_JSON = 'json';
+
     public const TYPE_DATE = 'date';
+
     public const TYPE_TIME = 'time';
+
     public const TYPE_DATETIME = 'datetime';
+
     public const TYPE_ENUM = 'enum';
 
     public const ALLOWED_TYPES = [
@@ -55,34 +62,34 @@ class ConfigurableItem
 
     /** @var string The unique key identifier for this setting */
     public string $key;
-    
+
     /** @var string The data type (one of TYPE_* constants) */
     public string $type = self::TYPE_STRING;
-    
+
     /** @var mixed The default value when no value is set */
     public mixed $default = null;
-    
+
     /** @var array Laravel validation rules for this setting */
     public array $rules = [];
-    
+
     /** @var string|null Group name for organizing settings in UI */
     public ?string $group = null;
-    
+
     /** @var string|null Human-readable label for this setting */
     public ?string $label = null;
-    
+
     /** @var string|null Detailed description of what this setting does */
     public ?string $description = null;
-    
+
     /** @var bool Whether this setting should be encrypted in storage */
     public bool $encrypted = false;
-    
+
     /** @var bool Whether this setting can only be modified programmatically */
     public bool $readonly = false;
-    
+
     /** @var string|null The enum class name for TYPE_ENUM settings */
     public ?string $enumClass = null;
-    
+
     /** @var array Allowed values for this setting (auto-generates validation) */
     public array $options = [];
 
@@ -91,192 +98,194 @@ class ConfigurableItem
 
     /**
      * Create a new ConfigurableItem instance with the given key.
-     * 
+     *
      * This is the starting point for building a setting definition using the fluent interface.
-     * 
-     * @param string $key The unique identifier for this setting (e.g., 'site_name', 'theme')
-     * @return static
+     *
+     * @param  string  $key  The unique identifier for this setting (e.g., 'site_name', 'theme')
      */
     public static function make(string $key): static
     {
         $instance = new static;
         $instance->key = $key;
+
         return $instance;
     }
 
     /**
      * Set the data type for this setting.
-     * 
+     *
      * The type determines how the value is stored, validated, and cast when retrieved.
      * Must be one of the TYPE_* constants.
-     * 
-     * @param string $type One of the TYPE_* constants (e.g., TYPE_STRING, TYPE_INTEGER)
-     * @return static
+     *
+     * @param  string  $type  One of the TYPE_* constants (e.g., TYPE_STRING, TYPE_INTEGER)
+     *
      * @throws InvalidSchemaException If the type is not in ALLOWED_TYPES or conflicts with existing default
      */
     public function type(string $type): static
     {
-        if (!in_array($type, self::ALLOWED_TYPES)) {
+        if (! in_array($type, self::ALLOWED_TYPES)) {
             throw new InvalidSchemaException(
-                "Invalid type '{$type}'. Allowed types: " . implode(', ', self::ALLOWED_TYPES),
+                "Invalid type '{$type}'. Allowed types: ".implode(', ', self::ALLOWED_TYPES),
                 $this->key
             );
         }
-        
+
         $this->type = $type;
-        
+
         // Validate default if it's already set
         if ($this->default !== null) {
             $this->validateDefaultType();
         }
-        
+
         return $this;
     }
 
     /**
      * Set the default value for this setting.
-     * 
+     *
      * The default is used when no value has been set in the database.
      * The default value type should match the declared type.
-     * 
-     * @param mixed $default The default value
-     * @return static
+     *
+     * @param  mixed  $default  The default value
+     *
      * @throws InvalidSchemaException If the default value type doesn't match the declared type
      */
     public function default(mixed $default): static
     {
         $this->default = $default;
-        
+
         // Validate immediately if type is already set
-        if (!empty($this->type)) {
+        if (! empty($this->type)) {
             $this->validateDefaultType();
         }
-        
+
         return $this;
     }
 
     /**
      * Set Laravel validation rules for this setting.
-     * 
+     *
      * Rules are validated when a value is set. Can be provided as array or pipe-separated string.
-     * 
-     * @param array<int, string>|string $rules Laravel validation rules
-     * @return static
+     *
+     * @param  array<int, string>|string  $rules  Laravel validation rules
      */
     public function rules(array|string $rules): static
     {
         $this->rules = is_array($rules) ? $rules : [$rules];
+
         return $this;
     }
 
     /**
      * Set the group name for organizing settings.
-     * 
+     *
      * Groups help organize settings in administrative interfaces.
      * Multiple settings can share the same group.
-     * 
-     * @param string $group The group name (e.g., 'appearance', 'notifications', 'security')
-     * @return static
+     *
+     * @param  string  $group  The group name (e.g., 'appearance', 'notifications', 'security')
      */
     public function group(string $group): static
     {
         $this->group = $group;
+
         return $this;
     }
 
     /**
      * Set a human-readable label for this setting.
-     * 
+     *
      * Labels are displayed in UIs instead of the technical key name.
-     * 
-     * @param string $label The display label
-     * @return static
+     *
+     * @param  string  $label  The display label
      */
     public function label(string $label): static
     {
         $this->label = $label;
+
         return $this;
     }
 
     /**
      * Set a detailed description for this setting.
-     * 
+     *
      * Descriptions provide additional context about what the setting does
      * and how it affects the application.
-     * 
-     * @param string $description The description text
-     * @return static
+     *
+     * @param  string  $description  The description text
      */
     public function description(string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
     /**
      * Mark this setting as encrypted.
-     * 
+     *
      * Encrypted settings are automatically encrypted when stored and decrypted
      * when retrieved. Useful for API keys, passwords, and sensitive data.
-     * 
-     * @param bool $encrypted Whether to encrypt this setting (default: true)
-     * @return static
+     *
+     * @param  bool  $encrypted  Whether to encrypt this setting (default: true)
      */
     public function encrypted(bool $encrypted = true): static
     {
         $this->encrypted = $encrypted;
+
         return $this;
     }
 
     /**
      * Mark this setting as readonly.
-     * 
+     *
      * Readonly settings cannot be modified or deleted at runtime.
      * They can only be set programmatically during installation or migrations.
      * Useful for system settings that shouldn't change.
-     * 
-     * @param bool $readonly Whether this setting is readonly (default: true)
-     * @return static
+     *
+     * @param  bool  $readonly  Whether this setting is readonly (default: true)
+     *
      * @throws ReadonlySettingException When attempting to modify a readonly setting
      */
     public function readonly(bool $readonly = true): static
     {
         $this->readonly = $readonly;
+
         return $this;
     }
 
     /**
      * Set the enum class for this setting (PHP 8.1+ backed enums).
-     * 
+     *
      * Automatically sets the type to TYPE_ENUM and validates the enum class exists.
      * Values will be automatically cast to/from the enum when getting/setting.
-     * 
-     * @param string $enumClass The fully qualified enum class name
-     * @return static
+     *
+     * @param  string  $enumClass  The fully qualified enum class name
+     *
      * @throws InvalidSchemaException If the class is not a valid enum
      */
     public function enum(string $enumClass): static
     {
-        if (!enum_exists($enumClass)) {
+        if (! enum_exists($enumClass)) {
             throw new InvalidSchemaException(
                 "Class '{$enumClass}' is not a valid enum.",
                 $this->key
             );
         }
-        
+
         $this->type = self::TYPE_ENUM;
         $this->enumClass = $enumClass;
+
         return $this;
     }
 
     /**
      * Set allowed values (options) for this setting.
-     * 
+     *
      * Automatically generates an 'in' validation rule to restrict values.
      * All options must be scalar values (string, int, float, bool).
-     * 
-     * @param array<int, scalar> $options Array of allowed values
-     * @return static
+     *
+     * @param  array<int, scalar>  $options  Array of allowed values
+     *
      * @throws InvalidSchemaException If options array is empty or contains non-scalar values
      */
     public function options(array $options): static
@@ -291,7 +300,7 @@ class ConfigurableItem
 
         // Validate all options are scalar values
         foreach ($options as $option) {
-            if (!is_scalar($option)) {
+            if (! is_scalar($option)) {
                 throw new InvalidSchemaException(
                     "All options must be scalar values for setting '{$this->key}'.",
                     $this->key
@@ -300,51 +309,51 @@ class ConfigurableItem
         }
 
         $this->options = $options;
-        
+
         // Auto-generate validation rule for options
-        $this->rules = array_merge($this->rules, ['in:' . implode(',', $options)]);
-        
+        $this->rules = array_merge($this->rules, ['in:'.implode(',', $options)]);
+
         return $this;
     }
 
     /**
      * Set a callback to lazy-load options dynamically.
-     * 
+     *
      * This is useful when options are dependent on database queries or other
      * dynamic data that you don't want to load during schema registration.
      * The callback is executed only when getSchemaWithValues() is called.
-     * 
+     *
      * The callback should return an array of scalar values (string, int, float, bool).
      * Options returned by the callback will be automatically validated.
-     * 
+     *
      * Example:
      * ```php
      * ->lazyOptions(function() {
      *     return Role::pluck('name')->toArray();
      * })
      * ```
-     * 
-     * @param callable $callback A callable that returns array<int, scalar>
-     * @return static
+     *
+     * @param  callable  $callback  A callable that returns array<int, scalar>
+     *
      * @throws InvalidSchemaException If the callback is not callable
      */
     public function lazyOptions(callable $callback): static
     {
         $this->lazyOptionsCallback = $callback;
+
         return $this;
     }
 
     /**
      * Validate this schema item definition.
-     * 
+     *
      * Checks that:
      * - A type is set
      * - Enum types have an enumClass
      * - Default value type matches the declared type
-     * 
+     *
      * Called automatically during schema registration to catch definition errors early.
-     * 
-     * @return void
+     *
      * @throws InvalidSchemaException If any validation fails
      */
     public function validate(): void
@@ -373,12 +382,11 @@ class ConfigurableItem
 
     /**
      * Validate that the default value matches the declared type.
-     * 
+     *
      * Ensures type safety by checking that defaults are compatible with
      * the setting's declared type (e.g., string default for string type).
      * Null defaults are always allowed as they represent optional settings.
-     * 
-     * @return void
+     *
      * @throws InvalidSchemaException If the default value type doesn't match
      */
     protected function validateDefaultType(): void
@@ -401,22 +409,22 @@ class ConfigurableItem
             default => true,
         };
 
-        if (!$valid) {
+        if (! $valid) {
             $actualType = gettype($this->default);
             $defaultValue = is_scalar($this->default) ? "'{$this->default}'" : gettype($this->default);
-            
+
             $hint = match ($this->type) {
-                self::TYPE_INTEGER => "Use ->type(ConfigurableItem::TYPE_INTEGER) for numeric defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_BOOLEAN => "Use ->type(ConfigurableItem::TYPE_BOOLEAN) for true/false values or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_FLOAT => "Use ->type(ConfigurableItem::TYPE_FLOAT) for decimal numbers or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_ARRAY, self::TYPE_JSON => "Use ->type(ConfigurableItem::TYPE_ARRAY) for array defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_DATE => "Use ->type(ConfigurableItem::TYPE_DATE) for date defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_TIME => "Use ->type(ConfigurableItem::TYPE_TIME) for time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_DATETIME => "Use ->type(ConfigurableItem::TYPE_DATETIME) for date/time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                self::TYPE_ENUM => "Use ->enum(YourEnumClass::class) for enum defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.",
-                default => "Ensure the default value type matches the declared type.",
+                self::TYPE_INTEGER => 'Use ->type(ConfigurableItem::TYPE_INTEGER) for numeric defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_BOOLEAN => 'Use ->type(ConfigurableItem::TYPE_BOOLEAN) for true/false values or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_FLOAT => 'Use ->type(ConfigurableItem::TYPE_FLOAT) for decimal numbers or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_ARRAY, self::TYPE_JSON => 'Use ->type(ConfigurableItem::TYPE_ARRAY) for array defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_DATE => 'Use ->type(ConfigurableItem::TYPE_DATE) for date defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_TIME => 'Use ->type(ConfigurableItem::TYPE_TIME) for time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_DATETIME => 'Use ->type(ConfigurableItem::TYPE_DATETIME) for date/time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                self::TYPE_ENUM => 'Use ->enum(YourEnumClass::class) for enum defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.',
+                default => 'Ensure the default value type matches the declared type.',
             };
-            
+
             throw new InvalidSchemaException(
                 "Type mismatch for setting '{$this->key}': Expected {$this->type}, but default value {$defaultValue} is {$actualType}. {$hint}",
                 $this->key
@@ -426,14 +434,15 @@ class ConfigurableItem
 
     /**
      * Convert this ConfigurableItem to an array representation.
-     * 
+     *
      * Used internally by the SettingsManager to store and retrieve schema configuration.
      * Includes all properties: key, type, default, rules, group, label, description,
      * encrypted, readonly, enumClass, and options.
-     * 
+     *
      * If a lazyOptionsCallback is set, it will be executed to lazy-load the options.
-     * 
+     *
      * @return array<string, mixed> Associative array of all properties
+     *
      * @throws InvalidSchemaException If lazyOptions returns invalid data
      */
     public function toArray(): array
@@ -442,18 +451,18 @@ class ConfigurableItem
         $options = $this->options;
         if ($this->lazyOptionsCallback !== null) {
             $options = call_user_func($this->lazyOptionsCallback);
-            
+
             // Validate lazy options returned an array
-            if (!is_array($options)) {
+            if (! is_array($options)) {
                 throw new InvalidSchemaException(
                     "Lazy options for setting '{$this->key}' must return an array.",
                     $this->key
                 );
             }
-            
+
             // Validate all options are scalar values
             foreach ($options as $option) {
-                if (!is_scalar($option)) {
+                if (! is_scalar($option)) {
                     throw new InvalidSchemaException(
                         "All lazy options must be scalar values for setting '{$this->key}'.",
                         $this->key

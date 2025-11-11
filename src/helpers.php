@@ -3,14 +3,9 @@
 use Illuminate\Database\Eloquent\Model;
 use SgFlores\SchemaSetting\Facades\Settings;
 
-if (!function_exists('setting')) {
+if (! function_exists('setting')) {
     /**
      * Get a setting value.
-     *
-     * @param string $key
-     * @param mixed $default
-     * @param Model|null $model
-     * @return mixed
      */
     function setting(string $key, mixed $default = null, ?Model $model = null): mixed
     {
@@ -22,14 +17,9 @@ if (!function_exists('setting')) {
     }
 }
 
-if (!function_exists('set_setting')) {
+if (! function_exists('set_setting')) {
     /**
      * Set a setting value.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @param Model|null $model
-     * @return bool
      */
     function set_setting(string $key, mixed $value, ?Model $model = null): bool
     {
@@ -41,13 +31,9 @@ if (!function_exists('set_setting')) {
     }
 }
 
-if (!function_exists('has_setting')) {
+if (! function_exists('has_setting')) {
     /**
      * Check if a setting exists in the schema.
-     *
-     * @param string $key
-     * @param Model|null $model
-     * @return bool
      */
     function has_setting(string $key, ?Model $model = null): bool
     {
@@ -59,13 +45,9 @@ if (!function_exists('has_setting')) {
     }
 }
 
-if (!function_exists('delete_setting')) {
+if (! function_exists('delete_setting')) {
     /**
      * Delete a setting.
-     *
-     * @param string $key
-     * @param Model|null $model
-     * @return bool
      */
     function delete_setting(string $key, ?Model $model = null): bool
     {
@@ -77,13 +59,9 @@ if (!function_exists('delete_setting')) {
     }
 }
 
-if (!function_exists('settings')) {
+if (! function_exists('settings')) {
     /**
      * Get multiple settings at once.
-     *
-     * @param array $keys
-     * @param Model|null $model
-     * @return array
      */
     function settings(array $keys, ?Model $model = null): array
     {
@@ -95,12 +73,9 @@ if (!function_exists('settings')) {
     }
 }
 
-if (!function_exists('all_settings')) {
+if (! function_exists('all_settings')) {
     /**
      * Get all settings for a scope.
-     *
-     * @param Model|null $model
-     * @return array
      */
     function all_settings(?Model $model = null): array
     {
@@ -112,13 +87,11 @@ if (!function_exists('all_settings')) {
     }
 }
 
-if (!function_exists('schema_with_values')) {
+if (! function_exists('schema_with_values')) {
     /**
      * Get schema configuration with persisted values for form generation.
      *
-     * @param array|string $keys Array of setting keys or single key (empty = all keys)
-     * @param Model|null $model
-     * @return array
+     * @param  array|string  $keys  Array of setting keys or single key (empty = all keys)
      */
     function schema_with_values(array|string $keys = [], ?Model $model = null): array
     {
@@ -129,4 +102,3 @@ if (!function_exists('schema_with_values')) {
         }
     }
 }
-

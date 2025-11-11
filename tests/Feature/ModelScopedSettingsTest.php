@@ -4,20 +4,22 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestTeam;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Facades\Settings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
-use SgFlores\SchemaSetting\Facades\Settings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestTeam;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class ModelScopedSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
     protected SettingsManager $manager;
+
     protected TestUser $user1;
+
     protected TestUser $user2;
 
     protected function setUp(): void
@@ -147,4 +149,3 @@ class ModelScopedSettingsTest extends TestCase
         $this->assertFalse($all['notifications_enabled']);
     }
 }
-

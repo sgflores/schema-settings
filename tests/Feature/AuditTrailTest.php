@@ -4,18 +4,19 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\SettingHistory;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class AuditTrailTest extends TestCase
 {
     use RefreshDatabase;
 
     protected SettingsManager $manager;
+
     protected TestUser $user;
 
     protected function setUp(): void
@@ -287,13 +288,13 @@ class AuditTrailTest extends TestCase
     {
         // Set initial value - should create audit entry
         $this->manager->set('site_name', 'Same Value');
-        
+
         $initialCount = SettingHistory::where('key', 'site_name')->count();
         $this->assertEquals(1, $initialCount);
 
         // Set the same value again - should NOT create audit entry
         $this->manager->set('site_name', 'Same Value');
-        
+
         $finalCount = SettingHistory::where('key', 'site_name')->count();
         $this->assertEquals(1, $finalCount); // Count should remain the same
 
@@ -307,20 +308,20 @@ class AuditTrailTest extends TestCase
     {
         // Set initial value
         $this->manager->set('site_name', 'First Value');
-        
+
         $initialCount = SettingHistory::where('key', 'site_name')->count();
         $this->assertEquals(1, $initialCount);
 
         // Set different value - should create audit entry
         $this->manager->set('site_name', 'Second Value');
-        
+
         $finalCount = SettingHistory::where('key', 'site_name')->count();
         $this->assertEquals(2, $finalCount); // Should have 2 entries now
 
         // Verify we have both 'created' and 'updated' entries
         $created = SettingHistory::where('key', 'site_name')->where('action', 'created')->count();
         $updated = SettingHistory::where('key', 'site_name')->where('action', 'updated')->count();
-        
+
         $this->assertEquals(1, $created);
         $this->assertEquals(1, $updated);
     }
@@ -330,7 +331,7 @@ class AuditTrailTest extends TestCase
     {
         // Set initial value for user - should create audit entry
         $this->user->setSetting('theme', 'dark');
-        
+
         $initialCount = SettingHistory::where('key', 'theme')
             ->where('reference_id', $this->user->id)
             ->count();
@@ -338,7 +339,7 @@ class AuditTrailTest extends TestCase
 
         // Set same value again - should NOT create audit entry
         $this->user->setSetting('theme', 'dark');
-        
+
         $finalCount = SettingHistory::where('key', 'theme')
             ->where('reference_id', $this->user->id)
             ->count();
@@ -346,7 +347,7 @@ class AuditTrailTest extends TestCase
 
         // Set different value - should create audit entry
         $this->user->setSetting('theme', 'light');
-        
+
         $updatedCount = SettingHistory::where('key', 'theme')
             ->where('reference_id', $this->user->id)
             ->count();
@@ -361,7 +362,7 @@ class AuditTrailTest extends TestCase
             'site_name' => 'Original Site',
             'max_users' => 100,
         ]);
-        
+
         $initialCount = SettingHistory::where('action', 'created')->count();
         $this->assertEquals(2, $initialCount);
 
@@ -370,7 +371,7 @@ class AuditTrailTest extends TestCase
             'site_name' => 'Original Site',
             'max_users' => 100,
         ]);
-        
+
         $finalCount = SettingHistory::where('action', 'created')->count();
         $this->assertEquals(2, $finalCount); // Count should remain the same
 
@@ -379,7 +380,7 @@ class AuditTrailTest extends TestCase
             'site_name' => 'Original Site', // Same value
             'max_users' => 200,            // Different value
         ]);
-        
+
         $updatedCount = SettingHistory::where('action', 'updated')->count();
         $this->assertEquals(1, $updatedCount); // Only max_users should create audit entry
     }

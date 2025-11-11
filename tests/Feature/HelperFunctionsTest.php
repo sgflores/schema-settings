@@ -4,10 +4,10 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class HelperFunctionsTest extends TestCase
 {
@@ -33,7 +33,7 @@ class HelperFunctionsTest extends TestCase
     public function setting_helper_gets_global_setting(): void
     {
         set_setting('site_name', 'Helper Test');
-        
+
         $value = setting('site_name');
 
         $this->assertEquals('Helper Test', $value);
@@ -51,7 +51,7 @@ class HelperFunctionsTest extends TestCase
     public function setting_helper_works_with_model(): void
     {
         set_setting('theme', 'dark', $this->user);
-        
+
         $value = setting('theme', null, $this->user);
 
         $this->assertEquals('dark', $value);
@@ -101,7 +101,7 @@ class HelperFunctionsTest extends TestCase
     public function delete_setting_helper_deletes_setting(): void
     {
         set_setting('site_name', 'To Delete');
-        
+
         $result = delete_setting('site_name');
 
         $this->assertTrue($result);
@@ -120,7 +120,7 @@ class HelperFunctionsTest extends TestCase
     public function delete_setting_helper_works_with_model(): void
     {
         set_setting('theme', 'dark', $this->user);
-        
+
         $result = delete_setting('theme', $this->user);
 
         $this->assertTrue($result);
@@ -212,7 +212,7 @@ class HelperFunctionsTest extends TestCase
     public function schema_with_values_helper_gets_schema_with_values(): void
     {
         set_setting('site_name', 'Helper Schema Test');
-        
+
         $schema = schema_with_values('site_name');
 
         $this->assertIsArray($schema);
@@ -227,7 +227,7 @@ class HelperFunctionsTest extends TestCase
     {
         set_setting('site_name', 'Multi Test');
         set_setting('maintenance_mode', true);
-        
+
         $schema = schema_with_values(['site_name', 'maintenance_mode']);
 
         $this->assertArrayHasKey('site_name', $schema);
@@ -257,7 +257,7 @@ class HelperFunctionsTest extends TestCase
     public function schema_with_values_helper_gets_all_settings_when_empty_array(): void
     {
         set_setting('site_name', 'All Helper Test');
-        
+
         $schema = schema_with_values([]);
 
         $this->assertArrayHasKey('site_name', $schema);
@@ -279,7 +279,7 @@ class HelperFunctionsTest extends TestCase
     public function schema_with_values_helper_works_with_model(): void
     {
         set_setting('theme', 'dark', $this->user);
-        
+
         $schema = schema_with_values('theme', $this->user);
 
         $this->assertArrayHasKey('theme', $schema);

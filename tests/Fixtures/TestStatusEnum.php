@@ -4,7 +4,7 @@ namespace SgFlores\SchemaSetting\Tests\Fixtures;
 
 /**
  * Test Status Enum
- * 
+ *
  * Used for testing enum type handling in schema settings.
  */
 enum TestStatusEnum: string
@@ -14,4 +14,3 @@ enum TestStatusEnum: string
     case Pending = 'pending';
     case Archived = 'archived';
 }
-

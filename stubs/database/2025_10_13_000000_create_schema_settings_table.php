@@ -14,14 +14,14 @@ return new class extends Migration
             $table->text('value')->nullable(); // Stores the serialized setting value
 
             // Polymorphic Columns for Model-Scoped Settings
-            $table->string('reference_type')->nullable(); 
-            $table->unsignedBigInteger('reference_id')->nullable(); 
+            $table->string('reference_type')->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
 
             $table->timestamps();
 
             // Enforce uniqueness for a key within a specific scope
-            $table->unique(['key', 'reference_type', 'reference_id'], 'settings_unique_key_scope'); 
-            
+            $table->unique(['key', 'reference_type', 'reference_id'], 'settings_unique_key_scope');
+
             // Add an index for faster lookups
             $table->index(['reference_type', 'reference_id']);
         });

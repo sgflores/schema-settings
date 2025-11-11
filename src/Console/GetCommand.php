@@ -24,7 +24,8 @@ class GetCommand extends Command
             if ($scope === 'global') {
                 $value = Settings::get($key);
             } else {
-                $this->error("Model-scoped retrieval not supported in CLI. Use global scope or retrieve programmatically.");
+                $this->error('Model-scoped retrieval not supported in CLI. Use global scope or retrieve programmatically.');
+
                 return self::FAILURE;
             }
 
@@ -32,12 +33,13 @@ class GetCommand extends Command
                 $this->line(json_encode(['key' => $key, 'value' => $value], JSON_PRETTY_PRINT));
             } else {
                 $this->info("Key: {$key}");
-                $this->line("Value: " . $this->formatValue($value));
+                $this->line('Value: '.$this->formatValue($value));
             }
 
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("Error: " . $e->getMessage());
+            $this->error('Error: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -59,4 +61,3 @@ class GetCommand extends Command
         return (string) $value;
     }
 }
-

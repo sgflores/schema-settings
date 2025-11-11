@@ -2,10 +2,10 @@
 
 namespace SgFlores\SchemaSetting\Tests;
 
-use Orchestra\Testbench\TestCase as Orchestra;
-use SgFlores\SchemaSetting\SchemaSettingServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Orchestra\Testbench\TestCase as Orchestra;
+use SgFlores\SchemaSetting\SchemaSettingServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
@@ -14,10 +14,10 @@ abstract class TestCase extends Orchestra
         parent::setUp();
 
         // Load helper functions manually for tests
-        require_once __DIR__ . '/../src/helpers.php';
+        require_once __DIR__.'/../src/helpers.php';
 
-        $this->loadMigrationsFrom(__DIR__ . '/../stubs/database');
-        
+        $this->loadMigrationsFrom(__DIR__.'/../stubs/database');
+
         // Create users table for testing model-scoped settings
         $this->createTestTables();
     }
@@ -34,9 +34,9 @@ abstract class TestCase extends Orchestra
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
 
         // Set APP_KEY for encryption tests
@@ -67,4 +67,3 @@ abstract class TestCase extends Orchestra
         });
     }
 }
-

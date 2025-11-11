@@ -4,10 +4,10 @@ namespace SgFlores\SchemaSetting\Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class TypeCastingTest extends TestCase
 {
@@ -47,7 +47,7 @@ class TypeCastingTest extends TestCase
         // Use a non-readonly datetime field - we need to add one to test schema
         // For now, just test with database insertion
         $dateString = '2024-01-15 10:30:00';
-        
+
         Setting::create([
             'key' => 'installation_date',
             'value' => json_encode($dateString),
@@ -65,7 +65,7 @@ class TypeCastingTest extends TestCase
     public function it_preserves_datetime_object(): void
     {
         $date = new \DateTime('2024-01-15 10:30:00');
-        
+
         // DateTime objects should be preserved when already correct type
         Setting::create([
             'key' => 'installation_date',
@@ -163,10 +163,9 @@ class TypeCastingTest extends TestCase
         $ips = $this->manager->get('allowed_ips');
         $this->assertIsArray($ips);
 
-        // JSON type  
+        // JSON type
         $this->manager->set('metadata', ['key' => 'value']);
         $metadata = $this->manager->get('metadata');
         $this->assertIsArray($metadata);
     }
 }
-

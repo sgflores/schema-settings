@@ -20,6 +20,7 @@ class ListCommand extends Command
 
         if (empty($schema)) {
             $this->error("No settings found for scope: {$scope}");
+
             return self::FAILURE;
         }
 
@@ -70,7 +71,7 @@ class ListCommand extends Command
 
         foreach ($grouped as $group => $items) {
             $this->info("Group: {$group}");
-            
+
             $rows = [];
             foreach ($items as $config) {
                 $rows[] = [
@@ -85,7 +86,7 @@ class ListCommand extends Command
                 ['Key', 'Type', 'Default', 'Label'],
                 $rows
             );
-            
+
             $this->newLine();
         }
     }
@@ -107,4 +108,3 @@ class ListCommand extends Command
         return (string) $value;
     }
 }
-

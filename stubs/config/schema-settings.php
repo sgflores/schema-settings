@@ -1,4 +1,5 @@
 <?php
+
 // config/schema-settings.php
 
 return [

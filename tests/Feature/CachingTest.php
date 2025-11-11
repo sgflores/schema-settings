@@ -5,18 +5,19 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class CachingTest extends TestCase
 {
     use RefreshDatabase;
 
     protected SettingsManager $manager;
+
     protected TestUser $user;
 
     protected function setUp(): void
@@ -63,7 +64,7 @@ class CachingTest extends TestCase
 
         // Directly modify database without going through manager
         Setting::where('key', 'site_name')->update([
-            'value' => json_encode('Modified in DB')
+            'value' => json_encode('Modified in DB'),
         ]);
 
         // Get again - should return cached value, not DB value
@@ -114,8 +115,8 @@ class CachingTest extends TestCase
         $this->manager->get('theme', $user2);
 
         // Check that different cache keys exist
-        $cacheKey1 = 'test_settings_' . TestUser::class . ':' . $user1->id . ':theme';
-        $cacheKey2 = 'test_settings_' . TestUser::class . ':' . $user2->id . ':theme';
+        $cacheKey1 = 'test_settings_'.TestUser::class.':'.$user1->id.':theme';
+        $cacheKey2 = 'test_settings_'.TestUser::class.':'.$user2->id.':theme';
 
         $this->assertTrue(Cache::has($cacheKey1));
         $this->assertTrue(Cache::has($cacheKey2));
@@ -267,7 +268,7 @@ class CachingTest extends TestCase
         $this->manager->get('theme', $this->user);
 
         $globalKey = 'test_settings_global:null:site_name';
-        $userKey = 'test_settings_' . TestUser::class . ':' . $this->user->id . ':theme';
+        $userKey = 'test_settings_'.TestUser::class.':'.$this->user->id.':theme';
 
         $this->assertTrue(Cache::has($globalKey));
         $this->assertTrue(Cache::has($userKey));
@@ -292,8 +293,8 @@ class CachingTest extends TestCase
         $this->manager->get('theme', $user1);
         $this->manager->get('theme', $user2);
 
-        $user1Key = 'test_settings_' . TestUser::class . ':' . $user1->id . ':theme';
-        $user2Key = 'test_settings_' . TestUser::class . ':' . $user2->id . ':theme';
+        $user1Key = 'test_settings_'.TestUser::class.':'.$user1->id.':theme';
+        $user2Key = 'test_settings_'.TestUser::class.':'.$user2->id.':theme';
 
         $this->assertTrue(Cache::has($user1Key));
         $this->assertTrue(Cache::has($user2Key));
@@ -312,7 +313,7 @@ class CachingTest extends TestCase
     {
         // Should not throw exception even if cache is disabled
         $this->manager->clearCache();
-        
+
         $this->assertTrue(true); // No exception thrown
     }
 
@@ -320,7 +321,7 @@ class CachingTest extends TestCase
     public function cache_works_with_encrypted_values(): void
     {
         $this->manager->set('api_key', 'super_secret_key_1234567890abcdef');
-        
+
         // First get - should cache decrypted value
         $value1 = $this->manager->get('api_key');
 
@@ -340,7 +341,7 @@ class CachingTest extends TestCase
     {
         // TTL is set in config - just verify it's configurable
         $ttl = config('schema-settings.cache.ttl');
-        
+
         // TTL can be null (meaning forever) or an integer
         $this->assertTrue($ttl === null || (is_int($ttl) && $ttl > 0));
     }
@@ -420,5 +421,3 @@ class CachingTest extends TestCase
         $this->assertEquals('Global Value', Cache::get($globalKey));
     }
 }
-
-

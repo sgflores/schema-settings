@@ -5,7 +5,6 @@ namespace SgFlores\SchemaSetting\Tests\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
 use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
@@ -17,6 +16,7 @@ class HasSettingsTest extends TestCase
     use RefreshDatabase;
 
     protected SettingsManager $manager;
+
     protected TestUser $user;
 
     protected function setUp(): void
@@ -317,4 +317,3 @@ class HasSettingsTest extends TestCase
         $this->assertEquals('dark', $this->user->setting('theme'));
     }
 }
-

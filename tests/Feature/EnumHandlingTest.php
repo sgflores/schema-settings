@@ -3,7 +3,6 @@
 namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
@@ -215,7 +214,7 @@ class EnumHandlingTest extends TestCase
 
         // Modify database directly
         Setting::where('key', 'status')->update([
-            'value' => json_encode('inactive')
+            'value' => json_encode('inactive'),
         ]);
 
         // Should return cached value
@@ -283,7 +282,7 @@ class EnumHandlingTest extends TestCase
         $this->manager->set('status', TestStatusEnum::Inactive);
 
         $this->assertDatabaseCount('schema_settings_history', 2);
-        
+
         $history = \SgFlores\SchemaSetting\Models\SettingHistory::where('key', 'status')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -313,10 +312,10 @@ class EnumHandlingTest extends TestCase
         $this->manager->set('status', TestStatusEnum::Active);
 
         $setting = Setting::where('key', 'status')->first();
-        
+
         // Value should be JSON encoded
         $this->assertJson($setting->value);
-        
+
         // Should be stored as scalar, not object
         $decoded = json_decode($setting->value, true);
         $this->assertEquals('active', $decoded);
@@ -345,4 +344,3 @@ class EnumHandlingTest extends TestCase
         $this->assertFalse($value === TestStatusEnum::Inactive);
     }
 }
-

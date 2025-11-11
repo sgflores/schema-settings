@@ -4,10 +4,6 @@ namespace SgFlores\SchemaSetting\Tests\Unit;
 
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Console\ClearCacheCommand;
-use SgFlores\SchemaSetting\Console\GetCommand;
-use SgFlores\SchemaSetting\Console\ListCommand;
-use SgFlores\SchemaSetting\Console\SetCommand;
 use SgFlores\SchemaSetting\Contracts\SettingsManagerInterface;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\SchemaSettingServiceProvider;
@@ -82,7 +78,6 @@ class ServiceProviderTest extends TestCase
         $this->assertTrue(config()->has('schema-settings.audit.table_name'));
     }
 
-
     #[Test]
     public function config_has_validation_settings(): void
     {
@@ -128,7 +123,7 @@ class ServiceProviderTest extends TestCase
 
         // Access protected properties via reflection for testing
         $reflection = new \ReflectionClass($manager);
-        
+
         $tableProperty = $reflection->getProperty('table');
         $tableProperty->setAccessible(true);
         $this->assertEquals(config('schema-settings.table_name'), $tableProperty->getValue($manager));
@@ -141,7 +136,8 @@ class ServiceProviderTest extends TestCase
     #[Test]
     public function settings_manager_can_be_type_hinted_in_constructor(): void
     {
-        $service = new class($this->app->make(SettingsManagerInterface::class)) {
+        $service = new class($this->app->make(SettingsManagerInterface::class))
+        {
             public function __construct(public SettingsManagerInterface $settings) {}
         };
 
@@ -167,7 +163,7 @@ class ServiceProviderTest extends TestCase
         $this->assertStringContainsString('settings_', config('schema-settings.cache.prefix'));
         $this->assertTrue(config('schema-settings.audit.enabled'));
         $this->assertEquals('schema_settings_history', config('schema-settings.audit.table_name'));
-        
+
         // Validation defaults
         $this->assertTrue(config('schema-settings.validation.strict_mode'));
         $this->assertTrue(config('schema-settings.validation.boot_validation'));
@@ -195,9 +191,9 @@ class ServiceProviderTest extends TestCase
     public function routes_are_registered_when_enabled(): void
     {
         config(['schema-settings.routes.enabled' => true]);
-        
+
         $routeList = \Illuminate\Support\Facades\Route::getRoutes();
-        
+
         $hasSettingsRoute = false;
         foreach ($routeList as $route) {
             if (str_contains($route->uri(), 'schema-settings')) {
@@ -205,7 +201,7 @@ class ServiceProviderTest extends TestCase
                 break;
             }
         }
-        
+
         $this->assertTrue($hasSettingsRoute);
     }
 
@@ -213,7 +209,7 @@ class ServiceProviderTest extends TestCase
     public function routes_can_be_disabled(): void
     {
         config(['schema-settings.routes.enabled' => false]);
-        
+
         // Routes are loaded during boot, so we just verify the config
         $this->assertFalse(config('schema-settings.routes.enabled'));
     }
@@ -223,10 +219,9 @@ class ServiceProviderTest extends TestCase
     {
         // Verify the config has the default prefix
         $this->assertEquals('api/schema-settings', config('schema-settings.routes.prefix'));
-        
+
         // Verify we can override it via config
         config(['schema-settings.routes.prefix' => 'api/custom-prefix']);
         $this->assertEquals('api/custom-prefix', config('schema-settings.routes.prefix'));
     }
 }
-

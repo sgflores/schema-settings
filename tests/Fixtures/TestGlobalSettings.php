@@ -65,4 +65,3 @@ class TestGlobalSettings implements ConfigurableInterface
         ];
     }
 }
-

@@ -48,7 +48,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_can_set_datetime_object(): void
     {
         $dateTime = new DateTime('2024-10-14 15:30:00');
-        
+
         $this->manager->set('last_login', $dateTime);
         $value = $this->manager->get('last_login');
 
@@ -60,7 +60,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_can_set_carbon_instance(): void
     {
         $carbon = Carbon::create(2024, 10, 14, 15, 30, 0);
-        
+
         $this->manager->set('last_login', $carbon);
         $value = $this->manager->get('last_login');
 
@@ -72,7 +72,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_can_set_datetime_immutable(): void
     {
         $dateTime = new DateTimeImmutable('2024-10-14 15:30:00');
-        
+
         $this->manager->set('last_login', $dateTime);
         $value = $this->manager->get('last_login');
 
@@ -147,7 +147,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_handles_invalid_datetime_string_gracefully(): void
     {
         $this->manager->set('last_login', 'invalid-date-string');
-        
+
         $value = $this->manager->get('last_login');
 
         // Should return null (default) since parsing failed
@@ -169,7 +169,7 @@ class DateTimeHandlingTest extends TestCase
             try {
                 $this->manager->set('last_login', $format);
                 $value = $this->manager->get('last_login');
-                
+
                 $this->assertInstanceOf(\DateTimeInterface::class, $value);
             } catch (\Exception $e) {
                 // Some formats might not be recognized, that's OK
@@ -186,7 +186,7 @@ class DateTimeHandlingTest extends TestCase
 
         // Modify database directly
         Setting::where('key', 'last_login')->update([
-            'value' => json_encode('2024-10-15 10:00:00')
+            'value' => json_encode('2024-10-15 10:00:00'),
         ]);
 
         // Should return cached value
@@ -253,7 +253,7 @@ class DateTimeHandlingTest extends TestCase
         $this->manager->set('last_login', '2024-10-15 10:00:00');
 
         $this->assertDatabaseCount('schema_settings_history', 2);
-        
+
         $history = \SgFlores\SchemaSetting\Models\SettingHistory::where('key', 'last_login')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -307,7 +307,7 @@ class DateTimeHandlingTest extends TestCase
         // Carbon::create parameters: year, month, day, hour, minute, second, timezone
         $dateTime = Carbon::create(2024, 10, 14, 15, 30, 0);
         $dateTime = $dateTime->micro(500000); // Set microseconds separately
-        
+
         $this->manager->set('last_login', $dateTime);
         $value = $this->manager->get('last_login');
 
@@ -320,7 +320,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_preserves_datetime_object_on_re_retrieval(): void
     {
         $this->manager->set('last_login', '2024-10-14 15:30:00');
-        
+
         $value1 = $this->manager->get('last_login');
         $value2 = $this->manager->get('last_login');
 
@@ -341,7 +341,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_works_with_now_helper(): void
     {
         $now = now();
-        
+
         $this->manager->set('last_login', $now);
         $value = $this->manager->get('last_login');
 
@@ -353,7 +353,7 @@ class DateTimeHandlingTest extends TestCase
     public function it_handles_datetime_timezone_information(): void
     {
         $dateTime = new DateTime('2024-10-14 15:30:00', new \DateTimeZone('UTC'));
-        
+
         $this->manager->set('last_login', $dateTime);
         $value = $this->manager->get('last_login');
 
@@ -361,4 +361,3 @@ class DateTimeHandlingTest extends TestCase
         $this->assertEquals('2024-10-14 15:30:00', $value->format('Y-m-d H:i:s'));
     }
 }
-

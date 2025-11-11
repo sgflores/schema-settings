@@ -4,13 +4,13 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
-use SgFlores\SchemaSetting\Manager\SettingsManager;
-use SgFlores\SchemaSetting\Items\ConfigurableItem;
 use SgFlores\SchemaSetting\Exceptions\InvalidConfigurableException;
+use SgFlores\SchemaSetting\Items\ConfigurableItem;
+use SgFlores\SchemaSetting\Manager\SettingsManager;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class RegistrationTest extends TestCase
 {
@@ -193,4 +193,3 @@ class RegistrationTest extends TestCase
         $this->assertFalse($this->manager->has('non_existent', $user));
     }
 }
-

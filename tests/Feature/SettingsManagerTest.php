@@ -3,19 +3,16 @@
 namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
+use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
+use SgFlores\SchemaSetting\Facades\Settings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
-use SgFlores\SchemaSetting\Facades\Settings;
-use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
-use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
-use SgFlores\SchemaSetting\Exceptions\InvalidConfigurableException;
-use Illuminate\Validation\ValidationException;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class SettingsManagerTest extends TestCase
 {
@@ -150,7 +147,7 @@ class SettingsManagerTest extends TestCase
     public function it_can_get_schema_with_values_for_single_key(): void
     {
         $this->manager->set('site_name', 'My Custom Site');
-        
+
         $schema = $this->manager->getSchemaWithValues('site_name');
 
         $this->assertIsArray($schema);
@@ -167,7 +164,7 @@ class SettingsManagerTest extends TestCase
     {
         $this->manager->set('site_name', 'Updated Site');
         $this->manager->set('maintenance_mode', true);
-        
+
         $schema = $this->manager->getSchemaWithValues(['site_name', 'maintenance_mode']);
 
         $this->assertIsArray($schema);
@@ -190,7 +187,7 @@ class SettingsManagerTest extends TestCase
     public function it_can_get_schema_with_values_for_all_keys_when_empty_array_provided(): void
     {
         $this->manager->set('site_name', 'All Settings Test');
-        
+
         $schema = $this->manager->getSchemaWithValues([]);
 
         $this->assertIsArray($schema);
@@ -225,7 +222,7 @@ class SettingsManagerTest extends TestCase
             'email' => 'test@example.com',
         ]);
         $this->manager->set('theme', 'dark', $user);
-        
+
         $schema = $this->manager->getSchemaWithValues('theme', $user);
 
         $this->assertIsArray($schema);
@@ -237,7 +234,7 @@ class SettingsManagerTest extends TestCase
     public function it_works_with_facade_for_schema_with_values(): void
     {
         Settings::set('site_name', 'Facade Schema Test');
-        
+
         $schema = Settings::getSchemaWithValues('site_name');
 
         $this->assertEquals('Facade Schema Test', $schema['site_name']['value']);

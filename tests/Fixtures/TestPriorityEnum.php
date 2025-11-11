@@ -4,7 +4,7 @@ namespace SgFlores\SchemaSetting\Tests\Fixtures;
 
 /**
  * Test Priority Enum (Integer-backed)
- * 
+ *
  * Used for testing integer-backed enum type handling.
  */
 enum TestPriorityEnum: int
@@ -14,4 +14,3 @@ enum TestPriorityEnum: int
     case High = 3;
     case Critical = 4;
 }
-
