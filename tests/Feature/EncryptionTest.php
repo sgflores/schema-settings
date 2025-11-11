@@ -3,12 +3,11 @@
 namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Crypt;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class EncryptionTest extends TestCase
 {
@@ -157,4 +156,3 @@ class EncryptionTest extends TestCase
         $this->assertEquals($validKey, $this->manager->get('api_key'));
     }
 }
-

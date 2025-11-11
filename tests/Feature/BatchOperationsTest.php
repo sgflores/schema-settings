@@ -21,6 +21,7 @@ class BatchOperationsTest extends TestCase
     use RefreshDatabase;
 
     protected SettingsManager $manager;
+
     protected TestUser $user;
 
     protected function setUp(): void
@@ -99,7 +100,7 @@ class BatchOperationsTest extends TestCase
     public function get_multiple_mixes_cached_and_uncached_values(): void
     {
         $this->manager->set('site_name', 'Site Name');
-        
+
         // Cache site_name
         $this->manager->get('site_name');
 
@@ -156,11 +157,11 @@ class BatchOperationsTest extends TestCase
 
         // Count queries
         DB::enableQueryLog();
-        
+
         $this->manager->getMultiple(['site_name', 'maintenance_mode', 'max_users']);
-        
+
         $queries = DB::getQueryLog();
-        
+
         // Should be 1 query with whereIn, not 3 separate queries
         $this->assertCount(1, $queries);
         $this->assertStringContainsString('in', strtolower($queries[0]['query']));
@@ -373,11 +374,11 @@ class BatchOperationsTest extends TestCase
         Cache::flush();
 
         DB::enableQueryLog();
-        
+
         $this->manager->all();
-        
+
         $queries = DB::getQueryLog();
-        
+
         // Should be 1 query with whereIn
         $this->assertCount(1, $queries);
         $this->assertStringContainsString('in', strtolower($queries[0]['query']));
@@ -408,7 +409,7 @@ class BatchOperationsTest extends TestCase
         $this->assertNotEmpty($all);
 
         // Create manager without registering anything
-        $newManager = new SettingsManager();
+        $newManager = new SettingsManager;
         $result = $newManager->all();
 
         $this->assertEmpty($result);
@@ -432,7 +433,7 @@ class BatchOperationsTest extends TestCase
     public function all_uses_cache_for_previously_fetched_settings(): void
     {
         $this->manager->set('site_name', 'Original');
-        
+
         // Cache it
         $this->manager->get('site_name');
 
@@ -521,7 +522,7 @@ class BatchOperationsTest extends TestCase
     {
         $settings = [];
         for ($i = 0; $i < 5; $i++) {
-            $settings["metadata"] = ['index' => $i];
+            $settings['metadata'] = ['index' => $i];
         }
 
         // Final batch
@@ -607,4 +608,3 @@ class BatchOperationsTest extends TestCase
         $this->assertEquals('super_secret_key_1234567890abcdef', $all['api_key']);
     }
 }
-

@@ -2,33 +2,33 @@
 
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
-use SgFlores\SchemaSetting\Models\SettingHistory;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
 use PHPUnit\Framework\Attributes\Test;
+use SgFlores\SchemaSetting\Models\SettingHistory;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class SettingHistoryModelTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Don't call createTestTables() - already done in parent
     }
 
     #[Test]
     public function it_can_be_instantiated(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $this->assertInstanceOf(SettingHistory::class, $history);
     }
 
     #[Test]
     public function it_uses_correct_table_name_from_config(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $this->assertEquals('schema_settings_history', $history->getTable());
     }
 
@@ -36,17 +36,17 @@ class SettingHistoryModelTest extends TestCase
     public function it_uses_custom_table_name_from_config(): void
     {
         config(['schema-settings.audit.table_name' => 'custom_history']);
-        
-        $history = new SettingHistory();
-        
+
+        $history = new SettingHistory;
+
         $this->assertEquals('custom_history', $history->getTable());
     }
 
     #[Test]
     public function it_has_correct_fillable_attributes(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $expected = [
             'key',
             'old_value',
@@ -58,25 +58,25 @@ class SettingHistoryModelTest extends TestCase
             'action',
             'created_at',
         ];
-        
+
         $this->assertEquals($expected, $history->getFillable());
     }
 
     #[Test]
     public function it_has_timestamps_disabled(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $this->assertFalse($history->timestamps);
     }
 
     #[Test]
     public function it_casts_created_at_to_datetime(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $casts = $history->getCasts();
-        
+
         $this->assertArrayHasKey('created_at', $casts);
         $this->assertEquals('datetime', $casts['created_at']);
     }
@@ -95,9 +95,9 @@ class SettingHistoryModelTest extends TestCase
             'action' => 'updated',
             'created_at' => now(),
         ];
-        
+
         $history = SettingHistory::create($data);
-        
+
         $this->assertDatabaseHas('schema_settings_history', [
             'key' => 'test_key',
             'action' => 'updated',
@@ -109,20 +109,20 @@ class SettingHistoryModelTest extends TestCase
     #[Test]
     public function it_has_reference_polymorphic_relationship(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $relation = $history->reference();
-        
+
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class, $relation);
     }
 
     #[Test]
     public function it_has_user_polymorphic_relationship(): void
     {
-        $history = new SettingHistory();
-        
+        $history = new SettingHistory;
+
         $relation = $history->user();
-        
+
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class, $relation);
     }
 
@@ -373,4 +373,3 @@ class SettingHistoryModelTest extends TestCase
         $this->assertObjectNotHasProperty('updated_at', $history);
     }
 }
-

@@ -26,7 +26,8 @@ class SetCommand extends Command
             if ($this->option('json')) {
                 $value = json_decode($value, true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    $this->error("Invalid JSON: " . json_last_error_msg());
+                    $this->error('Invalid JSON: '.json_last_error_msg());
+
                     return self::FAILURE;
                 }
             } else {
@@ -38,14 +39,17 @@ class SetCommand extends Command
             if ($scope === 'global') {
                 Settings::set($key, $value);
             } else {
-                $this->error("Model-scoped setting not supported in CLI. Use global scope or set programmatically.");
+                $this->error('Model-scoped setting not supported in CLI. Use global scope or set programmatically.');
+
                 return self::FAILURE;
             }
 
             $this->info("Setting '{$key}' has been updated successfully.");
+
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("Error: " . $e->getMessage());
+            $this->error('Error: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -73,4 +77,3 @@ class SetCommand extends Command
         return $value;
     }
 }
-

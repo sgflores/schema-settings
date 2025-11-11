@@ -32,4 +32,3 @@ if (config('schema-settings.routes.enabled', true)) {
             ->name('index');
     });
 }
-

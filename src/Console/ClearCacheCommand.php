@@ -22,14 +22,14 @@ class ClearCacheCommand extends Command
             if ($scope) {
                 $this->info("Cache cleared for scope: {$scope}");
             } else {
-                $this->info("All settings cache has been cleared.");
+                $this->info('All settings cache has been cleared.');
             }
 
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("Error: " . $e->getMessage());
+            $this->error('Error: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
 }
-

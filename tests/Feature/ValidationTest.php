@@ -5,17 +5,18 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUserSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class ValidationTest extends TestCase
 {
     use RefreshDatabase;
 
     protected SettingsManager $manager;
+
     protected TestUser $user;
 
     protected function setUp(): void
@@ -287,4 +288,3 @@ class ValidationTest extends TestCase
         $this->manager->set('language', 'invalid');
     }
 }
-

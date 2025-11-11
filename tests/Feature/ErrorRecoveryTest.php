@@ -4,7 +4,6 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
@@ -99,7 +98,7 @@ class ErrorRecoveryTest extends TestCase
     {
         // This test verifies the code continues to work even if cache fails
         // Actual implementation depends on cache driver behavior
-        
+
         $this->manager->set('site_name', 'Test Value');
         $value = $this->manager->get('site_name');
 
@@ -124,7 +123,7 @@ class ErrorRecoveryTest extends TestCase
 
         // Simulate concurrent update by directly modifying DB
         Setting::where('key', 'site_name')->update([
-            'value' => json_encode('Concurrent Update')
+            'value' => json_encode('Concurrent Update'),
         ]);
 
         // Clear cache to force fresh read
@@ -170,8 +169,8 @@ class ErrorRecoveryTest extends TestCase
         $complexArray = [
             'nested' => [
                 'deep' => [
-                    'value' => 'test'
-                ]
+                    'value' => 'test',
+                ],
             ],
             'array' => [1, 2, 3],
             'bool' => true,
@@ -198,7 +197,7 @@ class ErrorRecoveryTest extends TestCase
     #[Test]
     public function it_handles_unicode_characters(): void
     {
-        $unicode = "Unicode: 你好 مرحبا שלום 🎉 émojis";
+        $unicode = 'Unicode: 你好 مرحبا שלום 🎉 émojis';
 
         $this->manager->set('site_name', $unicode);
         $value = $this->manager->get('site_name');
@@ -225,11 +224,11 @@ class ErrorRecoveryTest extends TestCase
                 'level2' => [
                     'level3' => [
                         'level4' => [
-                            'level5' => 'deep value'
-                        ]
-                    ]
-                ]
-            ]
+                            'level5' => 'deep value',
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $this->manager->set('metadata', $deeplyNested);
@@ -317,4 +316,3 @@ class ErrorRecoveryTest extends TestCase
         $this->assertFalse($maxUsersInDb);
     }
 }
-

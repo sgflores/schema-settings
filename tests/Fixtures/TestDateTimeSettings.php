@@ -42,4 +42,3 @@ class TestDateTimeSettings implements ConfigurableInterface
         ];
     }
 }
-

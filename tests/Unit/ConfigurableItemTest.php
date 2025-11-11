@@ -2,10 +2,10 @@
 
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Items\ConfigurableItem;
+use PHPUnit\Framework\TestCase;
 use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
+use SgFlores\SchemaSetting\Items\ConfigurableItem;
 
 class ConfigurableItemTest extends TestCase
 {
@@ -166,7 +166,7 @@ class ConfigurableItemTest extends TestCase
     public function it_validates_enum_class_exists(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("is not a valid enum");
+        $this->expectExceptionMessage('is not a valid enum');
 
         ConfigurableItem::make('test')->enum('NonExistentEnum');
     }
@@ -306,7 +306,7 @@ class ConfigurableItemTest extends TestCase
     public function it_can_set_lazy_options(): void
     {
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return ['dynamic1', 'dynamic2', 'dynamic3'];
             });
 
@@ -317,7 +317,7 @@ class ConfigurableItemTest extends TestCase
     public function it_executes_lazy_options_during_to_array(): void
     {
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return ['option1', 'option2'];
             });
 
@@ -331,9 +331,10 @@ class ConfigurableItemTest extends TestCase
     {
         $callCount = 0;
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() use (&$callCount) {
+            ->lazyOptions(function () use (&$callCount) {
                 $callCount++;
-                return ['option' . $callCount];
+
+                return ['option'.$callCount];
             });
 
         $item->toArray();
@@ -359,7 +360,7 @@ class ConfigurableItemTest extends TestCase
     {
         $item = ConfigurableItem::make('test')
             ->options(['static1', 'static2'])
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return ['lazy1', 'lazy2'];
             });
 
@@ -375,7 +376,7 @@ class ConfigurableItemTest extends TestCase
         $this->expectExceptionMessage("Lazy options for setting 'test' must return an array");
 
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return 'not an array';
             });
 
@@ -389,7 +390,7 @@ class ConfigurableItemTest extends TestCase
         $this->expectExceptionMessage("All lazy options must be scalar values for setting 'test'");
 
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return [['not', 'scalar']];
             });
 
@@ -400,7 +401,7 @@ class ConfigurableItemTest extends TestCase
     public function it_allows_empty_lazy_options_result(): void
     {
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return [];
             });
 
@@ -413,7 +414,7 @@ class ConfigurableItemTest extends TestCase
     public function it_supports_lazy_options_with_integer_options(): void
     {
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return [1, 2, 3];
             });
 
@@ -426,7 +427,7 @@ class ConfigurableItemTest extends TestCase
     public function it_supports_lazy_options_with_mixed_scalar_options(): void
     {
         $item = ConfigurableItem::make('test')
-            ->lazyOptions(function() {
+            ->lazyOptions(function () {
                 return [1, 'two', 3.0, true];
             });
 

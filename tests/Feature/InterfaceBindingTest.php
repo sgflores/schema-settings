@@ -4,10 +4,10 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
-use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Contracts\SettingsManagerInterface;
+use SgFlores\SchemaSetting\Manager\SettingsManager;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class InterfaceBindingTest extends TestCase
 {
@@ -44,7 +44,8 @@ class InterfaceBindingTest extends TestCase
     #[Test]
     public function it_can_inject_via_interface_in_constructor(): void
     {
-        $service = new class(app(SettingsManagerInterface::class)) {
+        $service = new class(app(SettingsManagerInterface::class))
+        {
             public function __construct(
                 public SettingsManagerInterface $settings
             ) {}
@@ -65,4 +66,3 @@ class InterfaceBindingTest extends TestCase
         $this->assertNotEmpty($schema);
     }
 }
-

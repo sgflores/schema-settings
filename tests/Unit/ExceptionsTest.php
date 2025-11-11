@@ -2,13 +2,13 @@
 
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use SgFlores\SchemaSetting\Exceptions\InvalidConfigurableException;
+use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
+use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
 use SgFlores\SchemaSetting\Exceptions\SchemaSettingException;
 use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
-use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
-use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
-use SgFlores\SchemaSetting\Exceptions\InvalidConfigurableException;
 
 class ExceptionsTest extends TestCase
 {
@@ -104,4 +104,3 @@ class ExceptionsTest extends TestCase
         }
     }
 }
-

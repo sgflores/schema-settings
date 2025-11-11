@@ -2,33 +2,33 @@
 
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
-use SgFlores\SchemaSetting\Models\Setting;
-use SgFlores\SchemaSetting\Tests\TestCase;
-use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
 use PHPUnit\Framework\Attributes\Test;
+use SgFlores\SchemaSetting\Models\Setting;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 class SettingModelTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Don't call createTestTables() - already done in parent
     }
 
     #[Test]
     public function it_can_be_instantiated(): void
     {
-        $setting = new Setting();
-        
+        $setting = new Setting;
+
         $this->assertInstanceOf(Setting::class, $setting);
     }
 
     #[Test]
     public function it_uses_correct_table_name_from_config(): void
     {
-        $setting = new Setting();
-        
+        $setting = new Setting;
+
         $this->assertEquals('schema_settings', $setting->getTable());
     }
 
@@ -36,34 +36,34 @@ class SettingModelTest extends TestCase
     public function it_uses_custom_table_name_from_config(): void
     {
         config(['schema-settings.table_name' => 'custom_settings']);
-        
-        $setting = new Setting();
-        
+
+        $setting = new Setting;
+
         $this->assertEquals('custom_settings', $setting->getTable());
     }
 
     #[Test]
     public function it_has_correct_fillable_attributes(): void
     {
-        $setting = new Setting();
-        
+        $setting = new Setting;
+
         $expected = [
             'key',
             'value',
             'reference_type',
             'reference_id',
         ];
-        
+
         $this->assertEquals($expected, $setting->getFillable());
     }
 
     #[Test]
     public function it_casts_timestamps_correctly(): void
     {
-        $setting = new Setting();
-        
+        $setting = new Setting;
+
         $casts = $setting->getCasts();
-        
+
         $this->assertArrayHasKey('created_at', $casts);
         $this->assertArrayHasKey('updated_at', $casts);
         $this->assertEquals('datetime', $casts['created_at']);
@@ -79,9 +79,9 @@ class SettingModelTest extends TestCase
             'reference_type' => null,
             'reference_id' => null,
         ];
-        
+
         $setting = Setting::create($data);
-        
+
         $this->assertDatabaseHas('schema_settings', $data);
         $this->assertEquals('test_key', $setting->key);
         $this->assertEquals('test_value', $setting->value);
@@ -90,10 +90,10 @@ class SettingModelTest extends TestCase
     #[Test]
     public function it_has_reference_polymorphic_relationship(): void
     {
-        $setting = new Setting();
-        
+        $setting = new Setting;
+
         $relation = $setting->reference();
-        
+
         $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class, $relation);
     }
 
@@ -276,4 +276,3 @@ class SettingModelTest extends TestCase
         $this->assertDatabaseMissing('schema_settings', ['id' => $id]);
     }
 }
-

@@ -6,23 +6,23 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
+use SgFlores\SchemaSetting\Exceptions\SchemaSettingException;
+use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
 use SgFlores\SchemaSetting\Facades\Settings;
 use SgFlores\SchemaSetting\Http\Requests\SettingsRequest;
-use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
-use SgFlores\SchemaSetting\Exceptions\SchemaSettingException;
 
 /**
  * SettingsController - API Controller for Schema Settings
- * 
+ *
  * This controller handles HTTP requests for retrieving settings schema with values.
  * It supports both single and multiple settings requests with proper
  * validation, error handling, and logging.
- * 
+ *
  * API Endpoints:
  * - GET /api/schema-settings?key=site_name (single setting)
  * - GET /api/schema-settings?keys[]=site_name&keys[]=maintenance_mode (multiple settings)
  * - GET /api/schema-settings (all settings)
- * 
+ *
  * Features:
  * - Request validation using SettingsRequest
  * - Automatic error handling and logging
@@ -38,15 +38,12 @@ class SettingsController extends Controller
      * GET /api/schema-settings?key=site_name
      * GET /api/schema-settings?keys[]=site_name&keys[]=maintenance_mode
      * GET /api/schema-settings
-     *
-     * @param SettingsRequest $request
-     * @return JsonResponse
      */
     public function __invoke(SettingsRequest $request): JsonResponse
     {
         // Get validated keys from the request
         $keys = $request->getKeys();
-        
+
         try {
             // Use getSchemaWithValues method for optimized retrieval
             $data = Settings::getSchemaWithValues($keys);
@@ -58,10 +55,10 @@ class SettingsController extends Controller
 
         } catch (SettingNotFoundException $e) {
             // Handle known Settings exceptions
-            Log::warning('Settings Not Found: ' . $e->getMessage(), [
+            Log::warning('Settings Not Found: '.$e->getMessage(), [
                 'keys' => $keys,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -69,10 +66,10 @@ class SettingsController extends Controller
 
         } catch (SchemaSettingException $e) {
             // Handle other Settings exceptions
-            Log::warning('Settings Error: ' . $e->getMessage(), [
+            Log::warning('Settings Error: '.$e->getMessage(), [
                 'keys' => $keys,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -80,11 +77,11 @@ class SettingsController extends Controller
 
         } catch (Exception $e) {
             // Handle unexpected errors
-            Log::error('Settings Unexpected Error: ' . $e->getMessage(), [
+            Log::error('Settings Unexpected Error: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'keys' => $keys,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => 'An internal server error occurred while retrieving settings.',
@@ -92,4 +89,3 @@ class SettingsController extends Controller
         }
     }
 }
-

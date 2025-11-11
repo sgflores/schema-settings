@@ -35,4 +35,3 @@ class TestEnumSettings implements ConfigurableInterface
         ];
     }
 }
-

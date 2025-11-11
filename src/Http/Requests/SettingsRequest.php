@@ -6,16 +6,16 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * SettingsRequest - Form Request for API Validation
- * 
+ *
  * This form request handles validation for the Settings API endpoints.
  * It validates both single key requests and multiple key requests
  * with appropriate rules and error messages.
- * 
+ *
  * Validation Rules:
  * - 'key': Optional string, max 255 characters
  * - 'keys': Optional array, max 50 items
  * - 'keys.*': Required string, max 255 characters each
- * 
+ *
  * Features:
  * - Allows empty requests (returns all settings)
  * - Validates parameter types and limits
@@ -66,15 +66,15 @@ class SettingsRequest extends FormRequest
     public function getKeys(): array
     {
         $keys = [];
-        
+
         if ($this->has('key')) {
             $keys[] = $this->input('key');
         }
-        
+
         if ($this->has('keys')) {
             $keys = array_merge($keys, $this->input('keys', []));
         }
-        
+
         return array_filter($keys);
     }
 
@@ -98,4 +98,3 @@ class SettingsRequest extends FormRequest
         // No additional validation needed
     }
 }
-

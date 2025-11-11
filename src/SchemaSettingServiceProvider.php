@@ -2,44 +2,40 @@
 
 namespace SgFlores\SchemaSetting;
 
-use SgFlores\SchemaSetting\Manager\SettingsManager;
-use SgFlores\SchemaSetting\Contracts\SettingsManagerInterface;
-use SgFlores\SchemaSetting\Console\ListCommand;
-use SgFlores\SchemaSetting\Console\GetCommand;
-use SgFlores\SchemaSetting\Console\SetCommand;
-use SgFlores\SchemaSetting\Console\ClearCacheCommand;
 use Illuminate\Support\ServiceProvider;
+use SgFlores\SchemaSetting\Console\ClearCacheCommand;
+use SgFlores\SchemaSetting\Console\GetCommand;
+use SgFlores\SchemaSetting\Console\ListCommand;
+use SgFlores\SchemaSetting\Console\SetCommand;
+use SgFlores\SchemaSetting\Contracts\SettingsManagerInterface;
+use SgFlores\SchemaSetting\Manager\SettingsManager;
 
 /**
  * SchemaSettingServiceProvider
- * 
+ *
  * Laravel service provider for the Schema Settings package.
- * 
+ *
  * Handles:
  * - Publishing configuration files, migrations, and example classes
  * - Registering artisan commands
  * - Binding the SettingsManager to the service container
  * - Binding the SettingsManagerInterface for dependency injection
- * 
+ *
  * Auto-discovered by Laravel via composer.json extra.laravel.providers.
- * 
- * @package SgFlores\SchemaSetting
  */
 class SchemaSettingServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap package services.
-     * 
+     *
      * Publishes assets and registers artisan commands.
      * Called after all service providers are registered.
-     * 
-     * @return void
      */
     public function boot(): void
-    {   
+    {
         $this->publishAssets();
         $this->loadRoutes();
-        
+
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -60,7 +56,7 @@ class SchemaSettingServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../stubs/config/schema-settings.php' => config_path('schema-settings.php'),
         ], 'schema-settings-config');
-        
+
         // Publish configurable examples
         $this->publishes([
             __DIR__.'/../stubs/app' => app_path('Providers/SchemaSettings'),
@@ -85,22 +81,20 @@ class SchemaSettingServiceProvider extends ServiceProvider
 
     /**
      * Register package services.
-     * 
+     *
      * Merges package configuration and binds the SettingsManager to the container.
      * The manager is registered as a singleton to maintain schema state across requests.
-     * 
-     * @return void
      */
     public function register(): void
     {
         $this->mergeConfigFrom(
             __DIR__.'/../stubs/config/schema-settings.php', 'schema-settings'
         );
-        
+
         // Register the main settings manager as a singleton
         // Using singleton ensures schema registrations persist across the request
         $this->app->singleton('schema-settings', function ($app) {
-            return new SettingsManager();
+            return new SettingsManager;
         });
 
         // Bind the interface to the implementation for dependency injection

@@ -5,12 +5,12 @@ namespace SgFlores\SchemaSetting\Tests\Unit;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Exceptions\InvalidSchemaException;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;
-use SgFlores\SchemaSetting\Tests\TestCase;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestEnum;
+use SgFlores\SchemaSetting\Tests\TestCase;
 
 /**
  * EnhancedValidationTest
- * 
+ *
  * Tests the enhanced type/value validation in ConfigurableItem.
  * Ensures that type mismatches are caught during the fluent chain,
  * not just during registration.
@@ -89,7 +89,7 @@ class EnhancedValidationTest extends TestCase
     public function it_provides_helpful_error_messages_for_integer_type(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("Use ->type(ConfigurableItem::TYPE_INTEGER) for numeric defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.");
+        $this->expectExceptionMessage('Use ->type(ConfigurableItem::TYPE_INTEGER) for numeric defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.');
 
         ConfigurableItem::make('test_setting')
             ->type(ConfigurableItem::TYPE_INTEGER)
@@ -100,7 +100,7 @@ class EnhancedValidationTest extends TestCase
     public function it_provides_helpful_error_messages_for_boolean_type(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("Use ->type(ConfigurableItem::TYPE_BOOLEAN) for true/false values or ->type(ConfigurableItem::TYPE_STRING) for text defaults.");
+        $this->expectExceptionMessage('Use ->type(ConfigurableItem::TYPE_BOOLEAN) for true/false values or ->type(ConfigurableItem::TYPE_STRING) for text defaults.');
 
         ConfigurableItem::make('test_setting')
             ->type(ConfigurableItem::TYPE_BOOLEAN)
@@ -111,7 +111,7 @@ class EnhancedValidationTest extends TestCase
     public function it_provides_helpful_error_messages_for_float_type(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("Use ->type(ConfigurableItem::TYPE_FLOAT) for decimal numbers or ->type(ConfigurableItem::TYPE_STRING) for text defaults.");
+        $this->expectExceptionMessage('Use ->type(ConfigurableItem::TYPE_FLOAT) for decimal numbers or ->type(ConfigurableItem::TYPE_STRING) for text defaults.');
 
         ConfigurableItem::make('test_setting')
             ->type(ConfigurableItem::TYPE_FLOAT)
@@ -122,7 +122,7 @@ class EnhancedValidationTest extends TestCase
     public function it_provides_helpful_error_messages_for_array_type(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("Use ->type(ConfigurableItem::TYPE_ARRAY) for array defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.");
+        $this->expectExceptionMessage('Use ->type(ConfigurableItem::TYPE_ARRAY) for array defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.');
 
         ConfigurableItem::make('test_setting')
             ->type(ConfigurableItem::TYPE_ARRAY)
@@ -133,7 +133,7 @@ class EnhancedValidationTest extends TestCase
     public function it_provides_helpful_error_messages_for_datetime_type(): void
     {
         $this->expectException(InvalidSchemaException::class);
-        $this->expectExceptionMessage("Use ->type(ConfigurableItem::TYPE_DATETIME) for date/time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.");
+        $this->expectExceptionMessage('Use ->type(ConfigurableItem::TYPE_DATETIME) for date/time defaults or ->type(ConfigurableItem::TYPE_STRING) for text defaults.');
 
         ConfigurableItem::make('test_setting')
             ->type(ConfigurableItem::TYPE_DATETIME)

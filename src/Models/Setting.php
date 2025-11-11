@@ -9,10 +9,10 @@ use Illuminate\Support\Carbon;
 
 /**
  * Setting Model
- * 
+ *
  * Eloquent model for the schema_settings database table.
  * Stores setting values with polymorphic relationships to reference models.
- * 
+ *
  * Database Structure:
  * - id: Primary key
  * - key: Setting identifier
@@ -20,9 +20,8 @@ use Illuminate\Support\Carbon;
  * - reference_type: Polymorphic type (model class name or null for global)
  * - reference_id: Polymorphic ID (model ID or null for global)
  * - timestamps: created_at, updated_at
- * 
- * @package SgFlores\SchemaSetting\Models
- * 
+ *
+ *
  * @property int $id
  * @property string $key
  * @property string $value
@@ -50,18 +49,16 @@ class Setting extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        
+
         // Allow dynamic table name from config
         $this->table = config('schema-settings.table_name', 'schema_settings');
     }
 
     /**
      * Get the reference model (polymorphic relation).
-     * 
+     *
      * Returns the model instance this setting is scoped to (e.g., a User instance).
      * Null for global settings.
-     * 
-     * @return MorphTo
      */
     public function reference(): MorphTo
     {
@@ -70,11 +67,8 @@ class Setting extends Model
 
     /**
      * Query scope to filter only global settings.
-     * 
+     *
      * Global settings have null reference_type and reference_id.
-     * 
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeGlobal(Builder $query): Builder
     {
@@ -83,29 +77,24 @@ class Setting extends Model
 
     /**
      * Query scope to filter settings for a specific model instance.
-     * 
+     *
      * Finds settings scoped to a particular model (e.g., User ID 1).
-     * 
-     * @param Builder $query
-     * @param Model $model The Eloquent model instance to scope by
-     * @return Builder
+     *
+     * @param  Model  $model  The Eloquent model instance to scope by
      */
     public function scopeForModel(Builder $query, Model $model): Builder
     {
         return $query->where('reference_type', $model::class)
-                     ->where('reference_id', $model->getKey());
+            ->where('reference_id', $model->getKey());
     }
 
     /**
      * Query scope to filter by setting key.
-     * 
-     * @param Builder $query
-     * @param string $key The setting key
-     * @return Builder
+     *
+     * @param  string  $key  The setting key
      */
     public function scopeKey(Builder $query, string $key): Builder
     {
         return $query->where('key', $key);
     }
 }
-
