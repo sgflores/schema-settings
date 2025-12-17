@@ -38,7 +38,7 @@ composer require sgflores/schema-settings
 # Publish config file
 php artisan vendor:publish --tag=schema-settings-config
 
-# Publish migrations
+# Publish migrations (optional)
 php artisan vendor:publish --tag=schema-settings-migrations
 
 # Run migrations

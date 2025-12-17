@@ -33,6 +33,9 @@ class SchemaSettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Load package migrations automatically
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
         $this->publishAssets();
         $this->loadRoutes();
 
@@ -62,10 +65,9 @@ class SchemaSettingServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/app' => app_path('Providers/SchemaSettings'),
         ], 'schema-settings-configurables');
 
-        // Publish migrations
+        // Publish Migrations (optional - allows host app to modify migrations)
         $this->publishes([
-            __DIR__.'/../stubs/database/2025_10_13_000000_create_schema_settings_table.php' => database_path('migrations/'.date('Y_m_d_His').'_create_schema_settings_table.php'),
-            __DIR__.'/../stubs/database/2025_10_13_000001_create_schema_settings_history_table.php' => database_path('migrations/'.date('Y_m_d_His', strtotime('+1 second')).'_create_schema_settings_history_table.php'),
+            __DIR__.'/../stubs/database' => database_path('migrations/vendor/schema-settings'),
         ], 'schema-settings-migrations');
     }
 
