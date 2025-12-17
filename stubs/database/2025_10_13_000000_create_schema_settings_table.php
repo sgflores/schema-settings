@@ -24,6 +24,8 @@ return new class extends Migration
 
             // Add an index for faster lookups
             $table->index(['reference_type', 'reference_id']);
+
+            $table->index(['key']);
         });
     }
 
