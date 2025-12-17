@@ -16,7 +16,7 @@ abstract class TestCase extends Orchestra
         // Load helper functions manually for tests
         require_once __DIR__.'/../src/helpers.php';
 
-        $this->loadMigrationsFrom(__DIR__.'/../stubs/database');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Create users table for testing model-scoped settings
         $this->createTestTables();

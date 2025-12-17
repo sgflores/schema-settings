@@ -55,7 +55,6 @@ This creates example schema classes:
 - `app/SchemaSettings/GlobalSettings.php` - Application-wide settings
 - `app/SchemaSettings/UserSettings.php` - User-specific settings
 - `app/Providers/SchemaSettings/SchemaSettingServiceProvider.php` - Service provider for registering schemas
-- `app/Providers/SchemaSettings/SchemaSettingServiceProvider.php` - Service provider for registering schemas
 
 ### 3. Define Your Settings Schema
 

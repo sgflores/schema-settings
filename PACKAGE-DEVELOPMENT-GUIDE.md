@@ -564,7 +564,7 @@ abstract class TestCase extends Orchestra
     {
         parent::setUp();
         
-        $this->loadMigrationsFrom(__DIR__ . '/../stubs/database');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         $this->artisan('migrate', ['--database' => 'testing']);
     }
 }

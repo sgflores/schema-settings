@@ -33,7 +33,7 @@ class SchemaSettingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Load package migrations automatically
+        // Register package migrations (they will be discovered when running 'php artisan migrate')
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->publishAssets();
@@ -65,9 +65,10 @@ class SchemaSettingServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/app' => app_path('Providers/SchemaSettings'),
         ], 'schema-settings-configurables');
 
-        // Publish Migrations (optional - allows host app to modify migrations)
+        // Publish Migrations (optional - for reference only, auto-loaded migrations take precedence)
+        // Note: If you need to customize migrations, publish them and remove loadMigrationsFrom() above
         $this->publishes([
-            __DIR__.'/../stubs/database' => database_path('migrations/vendor/schema-settings'),
+            __DIR__.'/../database/migrations' => database_path('migrations/vendor/schema-settings'),
         ], 'schema-settings-migrations');
     }
 
