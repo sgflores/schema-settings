@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 use SgFlores\SchemaSetting\SchemaSettingServiceProvider;
 
+// sample only
 abstract class TestCase extends Orchestra
 {
     protected function setUp(): void
