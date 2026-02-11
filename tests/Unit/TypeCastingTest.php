@@ -168,4 +168,32 @@ class TypeCastingTest extends TestCase
         $metadata = $this->manager->get('metadata');
         $this->assertIsArray($metadata);
     }
+
+    #[Test]
+    public function it_sanitizes_long_text_by_filtering_empty_lines(): void
+    {
+        // Set value with empty lines (e.g. "Table 1\nTable 2\n\nTable 3\nTable 4\nTable 5")
+        $raw = "Table 1\nTable 2\n\nTable 3\nTable 4\nTable 5";
+        $this->manager->set('table_labels', $raw);
+
+        $value = $this->manager->get('table_labels');
+
+        $this->assertSame("Table 1\nTable 2\nTable 3\nTable 4\nTable 5", $value);
+    }
+
+    #[Test]
+    public function it_sanitizes_long_text_on_read_when_stored_value_has_empty_lines(): void
+    {
+        // Simulate legacy stored value with empty lines
+        Setting::create([
+            'key' => 'table_labels',
+            'value' => json_encode("Table 1\nTable 2\n\n\nTable 3"),
+            'reference_type' => null,
+            'reference_id' => null,
+        ]);
+
+        $value = $this->manager->get('table_labels');
+
+        $this->assertSame("Table 1\nTable 2\nTable 3", $value);
+    }
 }

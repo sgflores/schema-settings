@@ -62,6 +62,12 @@ class TestGlobalSettings implements ConfigurableInterface
                 ->type(ConfigurableItem::TYPE_JSON)
                 ->default([])
                 ->group('advanced'),
+
+            ConfigurableItem::make('table_labels')
+                ->type(ConfigurableItem::TYPE_LONG_TEXT)
+                ->default("Table 1\nTable 2\nTable 3")
+                ->group('pos')
+                ->rules(['required', 'string']),
         ];
     }
 }
