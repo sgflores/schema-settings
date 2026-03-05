@@ -739,6 +739,7 @@ class SettingsManager implements SettingsManagerInterface
             ConfigurableItem::TYPE_TIME => $this->castToTime($value, $config),
             ConfigurableItem::TYPE_DATETIME => $this->castToDateTime($value, $config),
             ConfigurableItem::TYPE_ENUM => $this->castToEnum($value, $config),
+            ConfigurableItem::TYPE_LONG_TEXT => $this->sanitizeLongText((string) $value),
             default => (string) $value,
         };
     }
@@ -866,6 +867,11 @@ class SettingsManager implements SettingsManagerInterface
             };
         }
 
+        // Sanitize long_text: filter out empty lines (e.g. "Table 1\n\nTable 2" → "Table 1\nTable 2")
+        if ($config->type === ConfigurableItem::TYPE_LONG_TEXT && is_string($value)) {
+            $value = $this->sanitizeLongText($value);
+        }
+
         // JSON encode
         $serialized = json_encode($value);
 
@@ -875,6 +881,24 @@ class SettingsManager implements SettingsManagerInterface
         }
 
         return $serialized;
+    }
+
+    /**
+     * Sanitize long_text values by removing empty lines.
+     *
+     * Splits on any newline sequence (\r\n, \r, \n), trims each line, filters out
+     * empty lines, and rejoins with a single \n. Ensures values like
+     * "Table 1\nTable 2\n\nTable 3" become "Table 1\nTable 2\nTable 3".
+     *
+     * @param  string  $value  Raw long text (e.g. newline-separated labels)
+     * @return string Sanitized string with no empty lines
+     */
+    protected function sanitizeLongText(string $value): string
+    {
+        $lines = preg_split('/\r\n|\r|\n/', $value);
+        $lines = array_filter(array_map('trim', $lines), fn (string $line): bool => $line !== '');
+
+        return implode("\n", $lines);
     }
 
     /**
