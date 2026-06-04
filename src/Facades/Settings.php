@@ -4,6 +4,7 @@ namespace SgFlores\SchemaSetting\Facades;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
+use SgFlores\SchemaSetting\Manager\SettingsManager;
 
 /**
  * Settings Facade
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array<string, array<string, mixed>> getSchemaWithValues(array|string $keys, Model|null $model = null) Get schema configuration with persisted values for form generation
  * @method static void clearCache(string|null $scopeKey = null, int|null $referenceId = null) Clear cached settings
  *
- * @see \SgFlores\SchemaSetting\Manager\SettingsManager
+ * @see SettingsManager
  */
 class Settings extends Facade
 {

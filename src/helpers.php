@@ -11,7 +11,7 @@ if (! function_exists('setting')) {
     {
         try {
             return Settings::get($key, $model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $default;
         }
     }
@@ -25,7 +25,7 @@ if (! function_exists('set_setting')) {
     {
         try {
             return Settings::set($key, $value, $model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -39,7 +39,7 @@ if (! function_exists('has_setting')) {
     {
         try {
             return Settings::has($key, $model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -53,7 +53,7 @@ if (! function_exists('delete_setting')) {
     {
         try {
             return Settings::delete($key, $model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -67,7 +67,7 @@ if (! function_exists('settings')) {
     {
         try {
             return Settings::getMultiple($keys, $model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
     }
@@ -81,7 +81,7 @@ if (! function_exists('all_settings')) {
     {
         try {
             return Settings::all($model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
     }
@@ -97,7 +97,7 @@ if (! function_exists('schema_with_values')) {
     {
         try {
             return Settings::getSchemaWithValues($keys, $model);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
     }

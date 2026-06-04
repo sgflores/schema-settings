@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
+use SgFlores\SchemaSetting\Models\SettingHistory;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestDateTimeSettings;
 use SgFlores\SchemaSetting\Tests\TestCase;
 
@@ -254,7 +255,7 @@ class DateTimeHandlingTest extends TestCase
 
         $this->assertDatabaseCount('schema_settings_history', 2);
 
-        $history = \SgFlores\SchemaSetting\Models\SettingHistory::where('key', 'last_login')
+        $history = SettingHistory::where('key', 'last_login')
             ->orderBy('created_at', 'asc')
             ->get();
 

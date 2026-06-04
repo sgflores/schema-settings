@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
+use SgFlores\SchemaSetting\Models\SettingHistory;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestEnumSettings;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestPriorityEnum;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestStatusEnum;
@@ -283,7 +284,7 @@ class EnumHandlingTest extends TestCase
 
         $this->assertDatabaseCount('schema_settings_history', 2);
 
-        $history = \SgFlores\SchemaSetting\Models\SettingHistory::where('key', 'status')
+        $history = SettingHistory::where('key', 'status')
             ->orderBy('created_at', 'asc')
             ->get();
 

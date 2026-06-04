@@ -2,6 +2,7 @@
 
 namespace App\Providers\SchemaSettings;
 
+use App\Models\User;
 use SgFlores\SchemaSetting\Contracts\ConfigurableInterface;
 use SgFlores\SchemaSetting\Items\ConfigurableItem;
 
@@ -9,7 +10,7 @@ class UserSettings implements ConfigurableInterface
 {
     public static function getKey(): ?string
     {
-        return \App\Models\User::class;
+        return User::class;
     }
 
     public static function registerConfigurables(): array

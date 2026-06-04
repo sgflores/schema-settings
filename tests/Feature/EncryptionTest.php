@@ -3,6 +3,7 @@
 namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
@@ -134,7 +135,7 @@ class EncryptionTest extends TestCase
     #[Test]
     public function it_validates_encrypted_fields_before_encryption(): void
     {
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
         // api_key has min:32 rule
         $this->manager->set('api_key', 'too-short');

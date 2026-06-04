@@ -2,6 +2,8 @@
 
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Models\Setting;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
@@ -94,7 +96,7 @@ class SettingModelTest extends TestCase
 
         $relation = $setting->reference();
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class, $relation);
+        $this->assertInstanceOf(MorphTo::class, $relation);
     }
 
     #[Test]
@@ -215,8 +217,8 @@ class SettingModelTest extends TestCase
 
         $this->assertNotNull($setting->created_at);
         $this->assertNotNull($setting->updated_at);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $setting->created_at);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $setting->updated_at);
+        $this->assertInstanceOf(Carbon::class, $setting->created_at);
+        $this->assertInstanceOf(Carbon::class, $setting->updated_at);
     }
 
     #[Test]

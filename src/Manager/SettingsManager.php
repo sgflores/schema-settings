@@ -48,6 +48,20 @@ class SettingsManager implements SettingsManagerInterface
     /** @var array<string, array<string, ConfigurableItem>> */
     protected array $schema = [];
 
+    /**
+     * Per-request memo of getMultiple/all results (keyed by scope + reference + sorted keys).
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $resolvedMultiple = [];
+
+    /**
+     * Per-request memo of individual setting keys (populated by batch loads and get()).
+     *
+     * @var array<string, mixed>
+     */
+    protected array $resolvedByCacheKey = [];
+
     /** The database table name. */
     protected string $table;
 
@@ -145,17 +159,16 @@ class SettingsManager implements SettingsManagerInterface
     public function get(string $key, ?Model $model = null): mixed
     {
         $scopeKey = $model ? $model::class : 'global';
-        $config = $this->getSchemaConfig($scopeKey, $key);
+        $this->getSchemaConfig($scopeKey, $key);
 
         $cacheKey = $this->getCacheKey($scopeKey, $model?->getKey(), $key);
+        if (array_key_exists($cacheKey, $this->resolvedByCacheKey)) {
+            return $this->resolvedByCacheKey[$cacheKey];
+        }
 
-        $value = $this->cacheEnabled
-            ? $this->cache()->remember($cacheKey, $this->cacheTtl, function () use ($key, $model, $config) {
-                return $this->fetchFromDatabase($key, $model, $config);
-            })
-            : $this->fetchFromDatabase($key, $model, $config);
+        $results = $this->resolveMultipleFromCacheAndDb([$key], $model);
 
-        return $value;
+        return $results[$key];
     }
 
     /**
@@ -333,12 +346,7 @@ class SettingsManager implements SettingsManagerInterface
     }
 
     /**
-     * Get multiple settings at once using a single optimized database query.
-     *
-     * Performance-optimized method that fetches all requested settings in one query
-     * instead of N separate queries. Checks cache first for each setting.
-     *
-     * This is 90-95% faster than calling get() in a loop for bulk retrievals.
+     * Get multiple settings at once using batch cache and a single DB query for misses.
      *
      * @param  array<int, string>  $keys  Array of setting keys to retrieve
      * @param  Model|null  $model  Optional Eloquent model instance for model-scoped settings
@@ -349,48 +357,171 @@ class SettingsManager implements SettingsManagerInterface
     public function getMultiple(array $keys, ?Model $model = null): array
     {
         $scopeKey = $model ? $model::class : 'global';
-        $results = [];
 
-        // Validate all keys exist in schema first
         foreach ($keys as $key) {
             if (! isset($this->schema[$scopeKey][$key])) {
                 throw new SettingNotFoundException($key, $scopeKey);
             }
         }
 
-        // Fetch all settings from database in one query
-        $dbSettings = Setting::query()
-            ->whereIn('key', $keys)
-            ->when($model, fn ($q) => $q->forModel($model), fn ($q) => $q->global())
-            ->get()
-            ->keyBy('key');
+        return $this->resolveMultipleFromCacheAndDb($keys, $model);
+    }
 
-        // Process each setting
+    /**
+     * Resolve multiple settings: one cache read (many), DB only for cache misses, bulk cache write.
+     *
+     * @param  array<int, string>  $keys
+     * @return array<string, mixed>
+     */
+    protected function resolveMultipleFromCacheAndDb(array $keys, ?Model $model = null): array
+    {
+        if ($keys === []) {
+            return [];
+        }
+
+        $scopeKey = $model ? $model::class : 'global';
+        $referenceId = $model?->getKey();
+
+        $memoKey = $this->multipleMemoKey($scopeKey, $referenceId, $keys);
+        if (isset($this->resolvedMultiple[$memoKey])) {
+            return $this->resolvedMultiple[$memoKey];
+        }
+
+        $keyToCacheKey = [];
         foreach ($keys as $key) {
-            $config = $this->getSchemaConfig($scopeKey, $key);
-            $cacheKey = $this->getCacheKey($scopeKey, $model?->getKey(), $key);
+            $keyToCacheKey[$key] = $this->getCacheKey($scopeKey, $referenceId, $key);
+        }
 
-            // Check cache first
-            if ($this->cacheEnabled && $this->cache()->has($cacheKey)) {
-                $results[$key] = $this->cache()->get($cacheKey);
+        $results = [];
+        $missedKeys = [];
+        $cacheKeysToFetch = [];
+
+        foreach ($keys as $key) {
+            $cacheKey = $keyToCacheKey[$key];
+            if (array_key_exists($cacheKey, $this->resolvedByCacheKey)) {
+                $results[$key] = $this->resolvedByCacheKey[$cacheKey];
 
                 continue;
             }
 
-            // Get from database result or use default
+            $missedKeys[] = $key;
+            if ($this->cacheEnabled) {
+                $cacheKeysToFetch[] = $cacheKey;
+            }
+        }
+
+        if ($this->cacheEnabled && $cacheKeysToFetch !== []) {
+            $cachedByCacheKey = $this->fetchManyFromCache($cacheKeysToFetch);
+
+            $stillMissed = [];
+            foreach ($missedKeys as $key) {
+                $cacheKey = $keyToCacheKey[$key];
+                if (array_key_exists($cacheKey, $cachedByCacheKey) && $cachedByCacheKey[$cacheKey] !== null) {
+                    $results[$key] = $cachedByCacheKey[$cacheKey];
+                } else {
+                    $stillMissed[] = $key;
+                }
+            }
+
+            $missedKeys = $stillMissed;
+        }
+
+        if ($missedKeys === []) {
+            $this->rememberResolvedByCacheKey($keyToCacheKey, $results);
+
+            return $this->resolvedMultiple[$memoKey] = $results;
+        }
+
+        $dbSettings = Setting::query()
+            ->whereIn('key', $missedKeys)
+            ->when($model, fn ($q) => $q->forModel($model), fn ($q) => $q->global())
+            ->get()
+            ->keyBy('key');
+
+        $toCache = [];
+
+        foreach ($missedKeys as $key) {
+            $config = $this->getSchemaConfig($scopeKey, $key);
             $setting = $dbSettings->get($key);
             $value = $setting ? $this->deserializeValue($setting->value, $config) : $config->default;
             $value = $this->castValue($value, $config);
 
-            // Cache the value
-            if ($this->cacheEnabled) {
-                $this->cache()->put($cacheKey, $value, $this->cacheTtl);
-            }
-
             $results[$key] = $value;
+
+            if ($this->cacheEnabled) {
+                $toCache[$keyToCacheKey[$key]] = $value;
+            }
         }
 
-        return $results;
+        $this->putMultipleToCache($toCache);
+
+        $this->rememberResolvedByCacheKey($keyToCacheKey, $results);
+
+        return $this->resolvedMultiple[$memoKey] = $results;
+    }
+
+    /**
+     * @param  array<string, string>  $keyToCacheKey
+     * @param  array<string, mixed>  $results
+     */
+    protected function rememberResolvedByCacheKey(array $keyToCacheKey, array $results): void
+    {
+        foreach ($results as $settingKey => $value) {
+            if (isset($keyToCacheKey[$settingKey])) {
+                $this->resolvedByCacheKey[$keyToCacheKey[$settingKey]] = $value;
+            }
+        }
+    }
+
+    /**
+     * @param  array<int, string>  $keys
+     */
+    protected function multipleMemoKey(string $scopeKey, ?int $referenceId, array $keys): string
+    {
+        $sorted = $keys;
+        sort($sorted);
+
+        return $scopeKey.':'.($referenceId ?? 'null').':'.implode(',', $sorted);
+    }
+
+    /**
+     * Batch-read cache entries using the underlying store (one query for database driver).
+     *
+     * @param  array<int, string>  $cacheKeys
+     * @return array<string, mixed>
+     */
+    protected function fetchManyFromCache(array $cacheKeys): array
+    {
+        $uniqueKeys = array_values(array_unique($cacheKeys));
+        if ($uniqueKeys === []) {
+            return [];
+        }
+
+        // Defaults must be null — associative many([$cacheKey => $cacheKey]) makes Laravel
+        // return the "default" (the cache key string) on miss instead of null.
+        return $this->cache()->many(array_fill_keys($uniqueKeys, null));
+    }
+
+    /**
+     * Store multiple cast setting values in cache (forever when TTL is null).
+     *
+     * @param  array<string, mixed>  $valuesByCacheKey
+     */
+    protected function putMultipleToCache(array $valuesByCacheKey): void
+    {
+        if (! $this->cacheEnabled || $valuesByCacheKey === []) {
+            return;
+        }
+
+        if ($this->cacheTtl === null) {
+            foreach ($valuesByCacheKey as $cacheKey => $value) {
+                $this->cache()->forever($cacheKey, $value);
+            }
+
+            return;
+        }
+
+        $this->cache()->putMany($valuesByCacheKey, $this->cacheTtl);
     }
 
     /**
@@ -437,41 +568,7 @@ class SettingsManager implements SettingsManagerInterface
             return [];
         }
 
-        $results = [];
-        $keys = array_keys($this->schema[$scopeKey]);
-
-        // Fetch all settings from database in one query
-        $dbSettings = Setting::query()
-            ->whereIn('key', $keys)
-            ->when($model, fn ($q) => $q->forModel($model), fn ($q) => $q->global())
-            ->get()
-            ->keyBy('key');
-
-        // Process each setting in schema
-        foreach ($this->schema[$scopeKey] as $key => $item) {
-            $cacheKey = $this->getCacheKey($scopeKey, $model?->getKey(), $key);
-
-            // Check cache first
-            if ($this->cacheEnabled && $this->cache()->has($cacheKey)) {
-                $results[$key] = $this->cache()->get($cacheKey);
-
-                continue;
-            }
-
-            // Get from database result or use default
-            $setting = $dbSettings->get($key);
-            $value = $setting ? $this->deserializeValue($setting->value, $item) : $item->default;
-            $value = $this->castValue($value, $item);
-
-            // Cache the value
-            if ($this->cacheEnabled) {
-                $this->cache()->put($cacheKey, $value, $this->cacheTtl);
-            }
-
-            $results[$key] = $value;
-        }
-
-        return $results;
+        return $this->resolveMultipleFromCacheAndDb(array_keys($this->schema[$scopeKey]), $model);
     }
 
     /**
@@ -636,6 +733,9 @@ class SettingsManager implements SettingsManagerInterface
      */
     protected function invalidateCache(string $scopeKey, ?int $referenceId, string $key): void
     {
+        $this->resolvedMultiple = [];
+        $this->resolvedByCacheKey = [];
+
         if (! $this->cacheEnabled) {
             return;
         }
