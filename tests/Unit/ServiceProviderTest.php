@@ -3,10 +3,12 @@
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Contracts\SettingsManagerInterface;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\SchemaSettingServiceProvider;
+use SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings;
 use SgFlores\SchemaSetting\Tests\TestCase;
 
 class ServiceProviderTest extends TestCase
@@ -174,7 +176,7 @@ class ServiceProviderTest extends TestCase
     public function manager_singleton_persists_schema_registrations(): void
     {
         $manager1 = $this->app->make('schema-settings');
-        $manager1->register(\SgFlores\SchemaSetting\Tests\Fixtures\TestGlobalSettings::class);
+        $manager1->register(TestGlobalSettings::class);
 
         $schema1 = $manager1->getSchema('global');
 
@@ -192,7 +194,7 @@ class ServiceProviderTest extends TestCase
     {
         config(['schema-settings.routes.enabled' => true]);
 
-        $routeList = \Illuminate\Support\Facades\Route::getRoutes();
+        $routeList = Route::getRoutes();
 
         $hasSettingsRoute = false;
         foreach ($routeList as $route) {

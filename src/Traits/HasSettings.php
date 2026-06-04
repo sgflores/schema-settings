@@ -3,6 +3,8 @@
 namespace SgFlores\SchemaSetting\Traits;
 
 use Illuminate\Validation\ValidationException;
+use SgFlores\SchemaSetting\Exceptions\ReadonlySettingException;
+use SgFlores\SchemaSetting\Exceptions\SettingNotFoundException;
 use SgFlores\SchemaSetting\Facades\Settings;
 
 /**
@@ -29,7 +31,7 @@ trait HasSettings
      * @param  string  $key  The setting key to retrieve
      * @return mixed The setting value, cast to its defined type
      *
-     * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
+     * @throws SettingNotFoundException
      */
     public function setting(string $key): mixed
     {
@@ -46,8 +48,8 @@ trait HasSettings
      * @param  mixed  $value  The value to store
      * @return bool True on success
      *
-     * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
-     * @throws \SgFlores\SchemaSetting\Exceptions\ReadonlySettingException
+     * @throws SettingNotFoundException
+     * @throws ReadonlySettingException
      * @throws ValidationException
      */
     public function setSetting(string $key, mixed $value): bool
@@ -63,8 +65,8 @@ trait HasSettings
      * @param  string  $key  The setting key to delete
      * @return bool True if deleted, false if didn't exist
      *
-     * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
-     * @throws \SgFlores\SchemaSetting\Exceptions\ReadonlySettingException
+     * @throws SettingNotFoundException
+     * @throws ReadonlySettingException
      */
     public function deleteSetting(string $key): bool
     {
@@ -79,7 +81,7 @@ trait HasSettings
      * @param  array  $keys  Array of setting keys to retrieve
      * @return array Associative array of key => value pairs
      *
-     * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
+     * @throws SettingNotFoundException
      */
     public function settings(array $keys): array
     {
@@ -108,8 +110,8 @@ trait HasSettings
      * @param  array  $settings  Associative array of key => value pairs
      * @return bool True on success
      *
-     * @throws \SgFlores\SchemaSetting\Exceptions\SettingNotFoundException
-     * @throws \SgFlores\SchemaSetting\Exceptions\ReadonlySettingException
+     * @throws SettingNotFoundException
+     * @throws ReadonlySettingException
      * @throws ValidationException
      */
     public function setSettings(array $settings): bool

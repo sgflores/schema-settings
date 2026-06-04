@@ -2,6 +2,7 @@
 
 namespace SgFlores\SchemaSetting\Tests\Unit;
 
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Models\SettingHistory;
 use SgFlores\SchemaSetting\Tests\Fixtures\TestUser;
@@ -113,7 +114,7 @@ class SettingHistoryModelTest extends TestCase
 
         $relation = $history->reference();
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class, $relation);
+        $this->assertInstanceOf(MorphTo::class, $relation);
     }
 
     #[Test]
@@ -123,7 +124,7 @@ class SettingHistoryModelTest extends TestCase
 
         $relation = $history->user();
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphTo::class, $relation);
+        $this->assertInstanceOf(MorphTo::class, $relation);
     }
 
     #[Test]
