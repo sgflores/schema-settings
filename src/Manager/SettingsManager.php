@@ -84,6 +84,12 @@ class SettingsManager implements SettingsManagerInterface
     protected bool $auditEnabled;
 
     /**
+     * Marker for a boxed cache entry. The setting itself is nested under `value`,
+     * so this key never collides with an array or json setting after one unbox.
+     */
+    private const CACHE_ENVELOPE_MARKER = '__schema_settings_box';
+
+    /**
      * Create a new SettingsManager instance.
      *
      * Initializes configuration from config/schema-settings.php including:
@@ -416,8 +422,10 @@ class SettingsManager implements SettingsManagerInterface
             $stillMissed = [];
             foreach ($missedKeys as $key) {
                 $cacheKey = $keyToCacheKey[$key];
-                if (array_key_exists($cacheKey, $cachedByCacheKey) && $cachedByCacheKey[$cacheKey] !== null) {
-                    $results[$key] = $cachedByCacheKey[$cacheKey];
+                $cached = $this->readCachedSetting($cachedByCacheKey[$cacheKey] ?? null);
+
+                if ($cached['hit']) {
+                    $results[$key] = $cached['value'];
                 } else {
                     $stillMissed[] = $key;
                 }
@@ -499,11 +507,16 @@ class SettingsManager implements SettingsManagerInterface
 
         // Defaults must be null — associative many([$cacheKey => $cacheKey]) makes Laravel
         // return the "default" (the cache key string) on miss instead of null.
+        // A stored null is also reported as null, so values are boxed before they are written.
         return $this->cache()->many(array_fill_keys($uniqueKeys, null));
     }
 
     /**
      * Store multiple cast setting values in cache (forever when TTL is null).
+     *
+     * Each value is boxed. Laravel's cache repository treats a raw null as a miss
+     * in get(), many(), and has(), so a legitimate null setting would otherwise
+     * miss on every request and be written back forever.
      *
      * @param  array<string, mixed>  $valuesByCacheKey
      */
@@ -513,15 +526,64 @@ class SettingsManager implements SettingsManagerInterface
             return;
         }
 
+        $boxed = [];
+        foreach ($valuesByCacheKey as $cacheKey => $value) {
+            $boxed[$cacheKey] = $this->boxCacheValue($value);
+        }
+
         if ($this->cacheTtl === null) {
-            foreach ($valuesByCacheKey as $cacheKey => $value) {
+            foreach ($boxed as $cacheKey => $value) {
                 $this->cache()->forever($cacheKey, $value);
             }
 
             return;
         }
 
-        $this->cache()->putMany($valuesByCacheKey, $this->cacheTtl);
+        $this->cache()->putMany($boxed, $this->cacheTtl);
+    }
+
+    /**
+     * Wrap a setting so a cache hit is an array even when the value is null.
+     *
+     * @return array{__schema_settings_box: int, value: mixed}
+     */
+    protected function boxCacheValue(mixed $value): array
+    {
+        return [
+            self::CACHE_ENVELOPE_MARKER => 1,
+            'value' => $value,
+        ];
+    }
+
+    /**
+     * Read one entry from Cache::many().
+     *
+     * An envelope is a hit, including when `value` is null. A non-null raw entry
+     * is a hit left by a version that stored values unboxed. Null is a miss:
+     * Cache::many() returns null both when the key is absent and when a raw null
+     * was stored, and those two cannot be told apart.
+     *
+     * @return array{hit: bool, value: mixed}
+     */
+    protected function readCachedSetting(mixed $cached): array
+    {
+        if (is_array($cached) && $this->isCacheEnvelope($cached)) {
+            return ['hit' => true, 'value' => $cached['value']];
+        }
+
+        if ($cached !== null) {
+            return ['hit' => true, 'value' => $cached];
+        }
+
+        return ['hit' => false, 'value' => null];
+    }
+
+    protected function isCacheEnvelope(mixed $cached): bool
+    {
+        return is_array($cached)
+            && ($cached[self::CACHE_ENVELOPE_MARKER] ?? null) === 1
+            && array_key_exists('value', $cached)
+            && count($cached) === 2;
     }
 
     /**
