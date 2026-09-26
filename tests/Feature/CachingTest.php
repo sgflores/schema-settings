@@ -4,6 +4,7 @@ namespace SgFlores\SchemaSetting\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use SgFlores\SchemaSetting\Manager\SettingsManager;
 use SgFlores\SchemaSetting\Models\Setting;
@@ -49,9 +50,8 @@ class CachingTest extends TestCase
         $cacheKey = 'test_settings_global:null:site_name';
         $this->assertTrue(Cache::has($cacheKey));
 
-        // Verify cached value
-        $cachedValue = Cache::get($cacheKey);
-        $this->assertEquals('Cached Site', $cachedValue);
+        // Verify cached value (boxed so a stored null is distinguishable from a miss)
+        $this->assertEquals('Cached Site', $this->cachedValue($cacheKey));
     }
 
     #[Test]
@@ -165,7 +165,7 @@ class CachingTest extends TestCase
         $this->assertTrue(Cache::has($cacheKey));
 
         // Cached value should be the default
-        $this->assertEquals('Test Site', Cache::get($cacheKey));
+        $this->assertEquals('Test Site', $this->cachedValue($cacheKey));
     }
 
     #[Test]
@@ -213,21 +213,21 @@ class CachingTest extends TestCase
         $this->manager->get('maintenance_mode');
         $boolKey = 'test_settings_global:null:maintenance_mode';
         $this->assertTrue(Cache::has($boolKey));
-        $this->assertTrue(Cache::get($boolKey));
+        $this->assertTrue($this->cachedValue($boolKey));
 
         // Test integer caching
         $this->manager->set('max_users', 500);
         $this->manager->get('max_users');
         $intKey = 'test_settings_global:null:max_users';
         $this->assertTrue(Cache::has($intKey));
-        $this->assertEquals(500, Cache::get($intKey));
+        $this->assertEquals(500, $this->cachedValue($intKey));
 
         // Test array caching
         $this->manager->set('allowed_ips', ['192.168.1.1']);
         $this->manager->get('allowed_ips');
         $arrayKey = 'test_settings_global:null:allowed_ips';
         $this->assertTrue(Cache::has($arrayKey));
-        $this->assertEquals(['192.168.1.1'], Cache::get($arrayKey));
+        $this->assertEquals(['192.168.1.1'], $this->cachedValue($arrayKey));
     }
 
     #[Test]
@@ -328,7 +328,7 @@ class CachingTest extends TestCase
         // Should be cached (decrypted)
         $cacheKey = 'test_settings_global:null:api_key';
         $this->assertTrue(Cache::has($cacheKey));
-        $this->assertEquals('super_secret_key_1234567890abcdef', Cache::get($cacheKey));
+        $this->assertEquals('super_secret_key_1234567890abcdef', $this->cachedValue($cacheKey));
 
         // Second get - from cache
         $value2 = $this->manager->get('api_key');
@@ -389,7 +389,7 @@ class CachingTest extends TestCase
         // Get again should fetch from DB and cache new values
         $this->manager->get('site_name');
         $this->assertTrue(Cache::has($siteKey));
-        $this->assertEquals('New Site', Cache::get($siteKey));
+        $this->assertEquals('New Site', $this->cachedValue($siteKey));
     }
 
     #[Test]
@@ -418,6 +418,130 @@ class CachingTest extends TestCase
 
         $globalKey = 'test_settings_global:null:site_name';
         $this->assertTrue(Cache::has($globalKey));
-        $this->assertEquals('Global Value', Cache::get($globalKey));
+        $this->assertEquals('Global Value', $this->cachedValue($globalKey));
+    }
+
+    #[Test]
+    public function it_serves_a_cached_null_on_a_later_request(): void
+    {
+        foreach ([null, 120] as $ttl) {
+            Cache::flush();
+            config(['schema-settings.cache.ttl' => $ttl]);
+
+            $writer = $this->freshManager();
+            $writer->set('optional_label', null);
+            $writer->set('site_name', 'Cached Site');
+            $writer->getMultiple(['optional_label', 'site_name']);
+
+            Setting::query()->where('key', 'optional_label')->update([
+                'value' => json_encode('changed-in-db'),
+            ]);
+            Setting::query()->where('key', 'site_name')->update([
+                'value' => json_encode('changed-in-db'),
+            ]);
+
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+
+            $values = $this->freshManager()->getMultiple(['optional_label', 'site_name']);
+
+            $this->assertNull($values['optional_label']);
+            $this->assertSame('Cached Site', $values['site_name']);
+            $this->assertSame([], DB::getQueryLog());
+            $this->assertTrue(Cache::has('test_settings_global:null:optional_label'));
+        }
+    }
+
+    #[Test]
+    public function it_caches_a_null_default_when_no_row_exists(): void
+    {
+        Cache::flush();
+
+        $this->assertNull($this->freshManager()->get('optional_label'));
+        $this->assertTrue(Cache::has('test_settings_global:null:optional_label'));
+        $this->assertNull($this->cachedValue('test_settings_global:null:optional_label'));
+
+        Setting::query()->create([
+            'key' => 'optional_label',
+            'value' => json_encode('from-db'),
+            'reference_type' => null,
+            'reference_id' => null,
+        ]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->assertNull($this->freshManager()->get('optional_label'));
+        $this->assertSame([], DB::getQueryLog());
+    }
+
+    #[Test]
+    public function it_caches_false_and_empty_string_across_requests(): void
+    {
+        Cache::flush();
+
+        $writer = $this->freshManager();
+        $writer->set('maintenance_mode', false);
+        $writer->set('optional_label', '');
+        $writer->getMultiple(['maintenance_mode', 'optional_label']);
+
+        Setting::query()->where('key', 'maintenance_mode')->update([
+            'value' => json_encode(true),
+        ]);
+        Setting::query()->where('key', 'optional_label')->update([
+            'value' => json_encode('changed-in-db'),
+        ]);
+
+        $values = $this->freshManager()->getMultiple(['maintenance_mode', 'optional_label']);
+
+        $this->assertFalse($values['maintenance_mode']);
+        $this->assertSame('', $values['optional_label']);
+    }
+
+    #[Test]
+    public function it_reads_cache_entries_stored_before_envelopes(): void
+    {
+        $this->manager->set('site_name', 'From Database');
+
+        Cache::forever('test_settings_global:null:site_name', 'Legacy Cached');
+
+        Setting::query()->where('key', 'site_name')->update([
+            'value' => json_encode('Changed After Cache'),
+        ]);
+
+        $this->assertSame('Legacy Cached', $this->freshManager()->get('site_name'));
+    }
+
+    #[Test]
+    public function it_round_trips_a_value_shaped_like_the_cache_envelope(): void
+    {
+        $value = [
+            '__schema_settings_box' => 1,
+            'value' => 'inner',
+        ];
+
+        $this->manager->set('features', $value);
+
+        $this->assertSame($value, $this->freshManager()->get('features'));
+    }
+
+    private function freshManager(): SettingsManager
+    {
+        $manager = new SettingsManager;
+        $manager->register(TestGlobalSettings::class);
+        $manager->register(TestUserSettings::class);
+
+        return $manager;
+    }
+
+    private function cachedValue(string $cacheKey): mixed
+    {
+        $cached = Cache::get($cacheKey);
+
+        $this->assertIsArray($cached);
+        $this->assertSame(1, $cached['__schema_settings_box'] ?? null);
+        $this->assertArrayHasKey('value', $cached);
+
+        return $cached['value'];
     }
 }

@@ -68,6 +68,10 @@ class TestGlobalSettings implements ConfigurableInterface
                 ->default("Table 1\nTable 2\nTable 3")
                 ->group('pos')
                 ->rules(['required', 'string']),
+
+            ConfigurableItem::make('optional_label')
+                ->type(ConfigurableItem::TYPE_STRING)
+                ->default(null),
         ];
     }
 }
